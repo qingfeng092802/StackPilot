@@ -35,6 +35,17 @@ try {
   process.exit(1);
 }
 
+// 【.env.local 是本地唯一的凭据来源】先清掉从 shell 继承来的同名变量。
+//
+// 为什么必须清：实测发现，本机 shell 里另有一个 ANTHROPIC_API_KEY（别的工具设的）。
+// 把 .env.local 里的 key 行删掉之后，服务**照样起来了**——用的是那个全局 key，
+// 启动日志显示 `key 已加载（…7547）`，而 .env.local 里明明没有。
+//
+// 这比"报错"危险得多：你以为凭据已经拿掉了，实际还在用一把你没在管的 key。
+// 也会让"删掉 key 应该起不来"这条反向验收永远通不过。
+// 所以只保留 .env.local 里写的，其余一律不认。只清这三个受管变量，不动 PORT 等。
+for (const k of ['ANTHROPIC_API_KEY', 'ANTHROPIC_BASE_URL', 'ANTHROPIC_MODEL']) delete process.env[k];
+
 let loaded = 0;
 for (const line of raw.split(/\r?\n/)) {
   if (/^\s*#/.test(line) || !line.trim()) continue;
