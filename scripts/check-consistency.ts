@@ -18,7 +18,7 @@ import { checkFirstStep } from '../src/lib/explain/validate.ts';
 const read = (p: string) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const combosRaw = JSON.parse(read('../src/data/combos.json'));
 const casesRaw = JSON.parse(read('../tests/cases.json'));
-const prd = read('../PRD-StackPilot-v1.7.0-定稿.md');
+const prd = read('../PRD-StackPilot.md');
 const snapshot = JSON.parse(read('../src/data/facts-snapshot.json'));
 const d1Pool = JSON.parse(read('../tests/d1-candidates.json'));
 const d1Holdout = JSON.parse(read('../tests/d1-holdout.json'));
@@ -85,8 +85,8 @@ check('PRD 声明 5 种范式且含 E（纯静态）',
   (prd.includes('5 种范式') || prd.includes('5 种架构范式')) && prd.includes('纯静态零后端'));
 check('PRD 记录了 D1 历史产出率 29.6%（并注明口径已变）',
   prd.includes('29.6%') && prd.includes('口径'));
-check('PRD 写明了目标用户是 Vibe Coder（用 AI 写代码的人）',
-  prd.includes('Vibe Coder') && prd.includes('Cursor'));
+check('PRD 写明了目标用户是"用 AI 工具写代码的人"',
+  (prd.includes('Vibe Coder') || prd.includes('用 Cursor / Claude Code')) && prd.includes('Cursor'));
 check('PRD 声明 MCP 为主形态、Web 为调试台',
   prd.includes('主形态') && prd.includes('调试台'));
 check('PRD 记录了 ai_workflow 三档',
