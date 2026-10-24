@@ -18,7 +18,7 @@ import { checkFirstStep } from '../src/lib/explain/validate.ts';
 const read = (p: string) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const combosRaw = JSON.parse(read('../src/data/combos.json'));
 const casesRaw = JSON.parse(read('../tests/cases.json'));
-const prd = read('../PRD-StackPilot-v0.4.4-定稿.md');
+const prd = read('../PRD-StackPilot-v1.7.0-定稿.md');
 const snapshot = JSON.parse(read('../src/data/facts-snapshot.json'));
 const d1Pool = JSON.parse(read('../tests/d1-candidates.json'));
 const d1Holdout = JSON.parse(read('../tests/d1-holdout.json'));
@@ -76,17 +76,28 @@ check('12 套都有 ai_friendliness，且不再有 learning 字段',
 check('PRD §6.6.4 的 skills.js 示例已随 v1.7.0 废弃（代码里不再有该规则）',
   !anySkills, 'PRD 未同步，属已知文档债');
 
-console.log('\n=== 4. PRD 数字与实际一致 ===');
-check('PRD 声明组件数 23', prd.includes('**23 条**') || prd.includes('23 条'));
+console.log('\n=== 4. PRD 与 v1.7.0 实现一致 ===');
+// 这一节的目的：PRD 是给外人看的产品说明，它必须和代码说的是同一件事。
+// v1.7.0 把 PRD 整篇重写过（旧版还写着 skills / Web 形态），所以断言也跟着换了一套。
+check('PRD 声明组件数 23', prd.includes('23 条'));
 check('PRD 声明模板数 12 套', prd.includes('12 套'));
-check('PRD 声明 5 种范式且含 E（纯静态）', prd.includes('5 种范式') && prd.includes('纯静态零后端'));
-check('PRD 记录了 D1 真实产出率 29.6%', prd.includes('29.6%'));
-check('PRD §2 写了承诺边界（分层判断优先于框架选择）', prd.includes('分层判断优先于框架选择'));
-check('PRD 附录 F 记录了 schema 变更', prd.includes('附录 F：v0.4.3 schema 变更记录'));
+check('PRD 声明 5 种范式且含 E（纯静态）',
+  (prd.includes('5 种范式') || prd.includes('5 种架构范式')) && prd.includes('纯静态零后端'));
+check('PRD 记录了 D1 历史产出率 29.6%（并注明口径已变）',
+  prd.includes('29.6%') && prd.includes('口径'));
+check('PRD 写明了目标用户是 Vibe Coder（用 AI 写代码的人）',
+  prd.includes('Vibe Coder') && prd.includes('Cursor'));
+check('PRD 声明 MCP 为主形态、Web 为调试台',
+  prd.includes('主形态') && prd.includes('调试台'));
+check('PRD 记录了 ai_workflow 三档',
+  ['full_auto', 'assisted', 'learning'].every((k) => prd.includes(k)));
+check('PRD 记录了 ai_friendliness 取代 learning',
+  prd.includes('ai_friendliness') && prd.includes('取代'));
+check('PRD 权重表按 ai_workflow 索引', prd.includes('按 `ai_workflow` 索引'));
+check('PRD 附录 A 记录了 schema 变更', prd.includes('附录 A：schema 变更记录'));
 check('PRD 权重表无「需求匹配度」行', !/\|\s*需求匹配度\s*\|/.test(prd));
-check('PRD 无「缓存后 > ¥1」残留', !prd.includes('缓存后 > ¥1'));
-check('PRD E.4 标题为「四轮」', prd.includes('### E.4 四轮测试'));
-check('PRD 有 Q4 第3关兜底条款', prd.includes('若定价信息不全'));
+check('PRD 主动写明 ai_friendliness 未校准（不掩盖）',
+  prd.includes('人工判断') && prd.includes('未校准'));
 
 console.log('\n=== 5. 事实快照 ===');
 check('快照条数 > 0', snapshot.records.length > 0, `${snapshot.records.length} 条`);
@@ -379,10 +390,15 @@ check('combos.json 用到的组件都在 component-names 里登记',
 
 console.log('\n=== 10. v0.4.4 定位收窄 / v1.5.0 语义降级 ===');
 
-// 10.1 定位收窄必须落在 PRD 正文，不能只写在 ADR 里。
-// 只写 ADR 等于"内部知道、对外不说"，下一轮做文案时会被写成"帮所有人选架构"。
-check('PRD §2.2 写明了"不面向零基础纯小白"', prd.includes('不面向零基础纯小白'),
-  prd.includes('不面向零基础纯小白') ? '§2.2 已写入' : '缺失：定位收窄没落到 PRD');
+// 10.1 定位必须落在 PRD 正文，不能只写在 ADR 里。
+// 【v1.7.0 反转】旧断言检查的是"不面向零基础纯小白"——那是 v0.4.4 的定位，
+// 新定位下"不会写代码"恰恰是目标用户的典型特征。所以断言反转成"必须写明服务 Vibe Coder"。
+check('PRD 写明了目标用户是"用 Cursor/Agent 写代码的人"',
+  prd.includes('用 Cursor / Agent 写代码的人') || prd.includes('用 Cursor / Claude Code'),
+  '缺失：新定位没落到 PRD');
+check('PRD 明确把旧定位标注为作废（防止两套说法并存）',
+  prd.includes('不面向零基础纯小白') && prd.includes('作废'),
+  '缺失：旧结论没标注作废，读者会看到互相矛盾的两段');
 check('PRD 记录了 data_persistence 降级为建议项（v1.5.0）',
   prd.includes('v1.5.0') && prd.includes('建议项'),
   prd.includes('v1.5.0') ? '附录 F.4.1 已记录' : '缺失');
