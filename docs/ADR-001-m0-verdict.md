@@ -357,7 +357,7 @@ PRD v0.4.4 §2.2 已写明：**这条行为在 M1 里不允许为了"提高出�
 | `scripts/check-consistency.ts` | `d2105bde909eeb3c` |
 | `PRD-StackPilot-v0.4.4-定稿.md` | `3fd7dd6c6f46ae62` |
 
-> 上表为 v0.4.4 时期的历史留档。v1.7.0 起 PRD 已整篇重写为 `PRD-StackPilot-v1.7.0-定稿.md`（定位、schema、形态全部变更），本 ADR 保留原文不改。
+> 上表为 v0.4.4 时期的历史留档。v1.7.0 起 PRD 已整篇重写为 `PRD-StackPilot.md`（定位、schema、形态全部变更），本 ADR 保留原文不改。
 | `docs/output-validation-preview.md` | `8a0af6ef4d40cc65` |
 
 > 冻结期间使用的旧指纹（`d07ad64100dd` / `29aea37581d9` / `da13023c7b5a` / `aad0ab40d055` /

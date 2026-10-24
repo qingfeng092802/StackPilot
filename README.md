@@ -235,7 +235,7 @@ server/ + web/          Web 调试台（改渲染逻辑时比走 MCP 快）
 scripts/                构建、测试、评测、探针
 tests/                  D1 真实案例集（10 条）+ 候选池（60 条）
 docs/                   决策记录与设计文档
-PRD-StackPilot-v1.7.0-定稿.md   产品规格（定位 / 数据模型 / 打分 / 三阶段链路）
+PRD-StackPilot.md      产品规格（定位 / 数据模型 / 打分 / 三阶段链路）
 ```
 
 ---
