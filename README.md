@@ -170,6 +170,42 @@ Web 调试台还留着（它现在只是调试用，不是主入口）：
 npm run dev          # 打开 http://localhost:8787
 ```
 
+### 方式 D：WorkBuddy
+
+WorkBuddy 的 MCP 配置在 `~/.workbuddy-ai/mcp.json`（Windows 是 `C:\Users\<你>\.workbuddy-ai\mcp.json`）。
+**注意不是 `.mcp.json`**（带点的那个是别的工具用的）。
+
+```json
+{
+  "mcpServers": {
+    "stackpilot": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["D:/StackPilot/build/mcp.js"],
+      "env": {
+        "ANTHROPIC_API_KEY": "",
+        "ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic",
+        "ANTHROPIC_MODEL": "deepseek-flash"
+      }
+    }
+  }
+}
+```
+
+两件事必须注意：
+
+1. **`ANTHROPIC_API_KEY` 要显式写成 `""`。** WorkBuddy 进程里有自己的模型凭据
+   （`ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL`），子进程会**继承**它们。
+   不覆盖的话，MCP 会以为"有 key"而走 LLM 分支，然后用一把不属于你的 key 去请求，报 401。
+   写成空串强制走规则模式（免费、即时）。想用 LLM 模式时，把 `""` 换成你自己的 key 即可。
+2. **配完不会自动生效。** 打开 WorkBuddy 的**连接器管理**页面，点右上角的
+   **自定义连接器**，找到 `stackpilot`，点 **信任**。之后新开一个会话，
+   工具才会出现在可用列表里。
+
+启用后在对话里直接说：
+
+> 用 stackpilot 帮我选个架构：我想做个帮人记账的网页，就我自己用，要能登录
+
 ---
 
 ## 二、两个工具
