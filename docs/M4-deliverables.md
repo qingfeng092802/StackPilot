@@ -320,3 +320,56 @@ for (const k of ['ANTHROPIC_API_KEY', 'ANTHROPIC_BASE_URL', 'ANTHROPIC_MODEL']) 
 下一轮 `cp .env.local .env.local.bak` 备份到的正是残缺版，还原回来也是残缺的。
 
 **以后做这类测试：还原一律用确定性重建（heredoc 写死内容），不要用 `mv` 备份文件。**
+
+---
+
+## 11. 遗留问题（v1.7.0 之后，MCP 阶段）
+
+按"会不会影响用户"排序，不是按修起来难不难。
+
+| # | 问题 | 影响 | 处置 |
+|---|---|---|---|
+| 1 | **`ai_friendliness` 的 12 个数字是主观打分** | 权重档一变，选型结论就跟着变；现在没有任何实测支撑 | 已在 `combos.json` 的 `ai_friendliness_note` 开头标注 `⚠️ 当前为初始主观打分，待真实用例校准`。校准方法：拿每套组合用 Cursor 真跑一个同规模任务，记录"第一次跑通率 / 平均返工轮数" |
+| 2 | **`npx stackpilot-mcp` 未发布** | 用户只能走本地路径，多三步（clone / install / build） | 包结构已配好（`bin` / `files` / `version`），需要 npm 账号执行 `npm publish` |
+| 3 | **无 key 模式的落选文案生硬** | 读着像机翻（"等你不再处于「…」这种情况时"），但语义正确 | 暂不改。配 key 走 LLM 解释层就不会出现 |
+| 4 | **MCP 只在 SDK 客户端里验过** | 没用真实的 Cursor / Claude Desktop 端到端跑过 | 发布前必须做一次：真装进 Cursor，问一句"用 stackpilot 帮我选个架构" |
+| 5 | **历史基线口径已变** | `docs/D1-*` 的命中率、技能栈违背率与新数据不可直接比较 | 已在 check-consistency 里把期望值改成 medium 并写明原因；跨版本对比时必须注明口径 |
+| 6 | **Web 调试台残留 skills 死代码**（14 处） | 不影响运行（`FIELDS` 里已无 `type:'skills'`），但读代码的人会困惑 | 已在 `SKILL_KEYS` 上方写明是遗留分支，等大扫除时一起删 |
+| 7 | **PRD §6.6.4 还写着 `skills.js` 示例** | 文档与代码不一致 | 已知文档债。PRD 是 v0.4.4 定稿，改它要重新走一遍版本，暂不动 |
+| 8 | **无 prompt 注入防护** | 用户可以在 `raw_input` 里写"忽略以上指令"，解析层可能照做 | F1 起就存在的遗留（闸 ① 的 evidence 检查拦不住注入，因为注入话术本身就在原文里） |
+
+---
+
+## 12. v1.7.0 指纹快照（2026-10-24 16:30，MCP 收尾）
+
+sha256 前 16 位。用来回答"线上/归档的这一份，到底是哪一版代码"。
+
+| 文件 | 指纹 | 说明 |
+|---|---|---|
+| `src/lib/scoring.ts` | `719811842cdd7c8e` | `ai_workflow` + `ai_friendliness` + 权重表按工作方式索引 |
+| `src/data/combos.json` | `c1dfc015646ad962` | 12 套重评 + 8 条 ai_workflow 规则 + 校准标注 |
+| `src/lib/confidence.ts` | `333111ae0c0f48ef` | 核心组换成 `ai_workflow` |
+| `src/lib/intake/prompt.ts` | `93f4924a249e3b56` | 第 4 个 few-shot（Cursor 场景） |
+| `src/lib/intake/validate.ts` | `bdf78785b87ba9d1` | `AI_WORKFLOW_KW` 取代 skills 三张表 |
+| `src/lib/intake/index.ts` | `051b96b5eef00833` | 追问改成"让 AI 写多少" |
+| **`src/lib/explain/prompt.ts`** | **`3d5d8640d90f89fc`** | **与 M1 结项时完全一致（未动）** |
+| **`src/lib/explain/validate.ts`** | **`d1b10dc521e91c99`** | **与 M1 结项时完全一致（未动）** |
+| **`src/lib/explain/index.ts`** | **`abaa22c95be49a0b`** | **与 M1 结项时完全一致（未动）** |
+| `src/lib/explain/bootstrap.ts` | `b4819d8e38ff4a42` | 新增：启动 Prompt 生成器（并列的一层，不改旧层） |
+| `server/index.ts` | `717b8564b69d58ca` | Web 调试台 |
+| `web/app.js` | `c85dc18612f8ffd5` | 表单字段换成 ai_workflow |
+| `mcp/server.ts` | `9c6b4daf24eff2fe` | stdio + 两个工具 |
+| `mcp/render.ts` | `e565b5e7a4d4bbf7` | Markdown 渲染 |
+| `mcp/quick-parse.ts` | `16fac26bccda0af1` | 无 key 时的规则解析 |
+| `scripts/build.mjs` | `a4497c8a4cdff7f8` | 双产物（server.js + mcp.js）+ 凭据扫描 |
+| `scripts/check-consistency.ts` | `4e005ad01061f239` | ai_workflow 规则断言 + 防回退 |
+| `scripts/test-intake.ts` | `116e8f74ff93747e` | 54 条 |
+| `scripts/test-guards.ts` | `5aa5463e31924be9` | 26 条（not_chosen 改为动态取） |
+| `scripts/test-view-model.ts` | `3961bcd40df87399` | 27 条 |
+| `scripts/mcp-smoke.ts` | `fc4c2e184f0b3a3c` | 真子进程 JSON-RPC |
+
+产物：`build/server.js` 152 KB、`build/mcp.js` 1485 KB（含 MCP SDK 与 zod），**两者都不含任何凭据**。
+
+> 解释层三个文件的指纹与 M1 结项时**一字未变**，这是刻意的：
+> 这次转向新增了一个并列的 `bootstrap.ts`，没有去改那层已经通过真人验证的 Prompt。
+> 这行指纹就是证据——否则"我没动那层"只是一句口头保证。

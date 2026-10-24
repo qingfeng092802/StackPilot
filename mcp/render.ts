@@ -88,7 +88,14 @@ function parseSection(info: ParseInfo): string[] {
     out.push('');
   }
   if (info.missing.length) {
-    out.push(`**没读到、也没追问**：${info.missing.join('、')}。这些不影响结论方向，但会影响置信度。`);
+    // 措辞要准：ai_workflow 缺了会改变权重档，进而改变排序——不能说"不影响结论方向"。
+    const affectsRanking = info.missing.some((f) => f === 'ai_workflow' || f === 'delivery');
+    out.push(
+      `**没读到、也没追问**：${info.missing.join('、')}。` +
+        (affectsRanking
+          ? '其中交付形态 / AI 参与方式**会改变排序**，已按默认值处理——如果结论看着不对，先说清这两项。'
+          : '这些不影响能否给出方案，但会降低置信度。'),
+    );
     out.push('');
   }
   if (info.notes && info.notes.length) {

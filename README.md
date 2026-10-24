@@ -1,5 +1,79 @@
 # StackPilot MCP
 
+> 在 Cursor / Claude Code 里问一句"我该用什么技术栈"，它给你**一套架构 + 一段能直接粘给 AI 的启动指令**。
+
+## 一分钟快速上手
+
+### 第 1 步 · 装（约 30 秒）
+
+```bash
+git clone <你的仓库地址> stackpilot
+cd stackpilot
+npm install && npm run build
+```
+
+装完会生成 `build/mcp.js` —— 就这一个文件，没有别的服务要起。
+
+### 第 2 步 · 配（约 20 秒）
+
+**Cursor**：编辑 `~/.cursor/mcp.json`（全局）或项目里的 `.cursor/mcp.json`，把下面整段贴进去（路径换成你自己的）：
+
+```json
+{
+  "mcpServers": {
+    "stackpilot": {
+      "command": "node",
+      "args": ["D:/StackPilot/build/mcp.js"]
+    }
+  }
+}
+```
+
+**Claude Desktop**：编辑 `claude_desktop_config.json`
+（Windows 在 `%APPDATA%\Claude\`，macOS 在 `~/Library/Application Support/Claude/`）：
+
+```json
+{
+  "mcpServers": {
+    "stackpilot": {
+      "command": "node",
+      "args": ["D:/StackPilot/build/mcp.js"],
+      "env": {
+        "ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic",
+        "ANTHROPIC_API_KEY": "你的 key（可选，不填也能用）",
+        "ANTHROPIC_MODEL": "deepseek-flash"
+      }
+    }
+  }
+}
+```
+
+**Claude Code**：一行命令，不用手改 JSON。
+
+```bash
+claude mcp add stackpilot -- node D:/StackPilot/build/mcp.js
+```
+
+配完**重启编辑器**（Cursor 里是 `Cmd/Ctrl+Shift+P` → `Reload Window`）。
+
+### 第 3 步 · 用（约 10 秒）
+
+在对话里直接说，不用记工具名：
+
+> **用 stackpilot 帮我选个架构**：我想做个记账的小程序，大概 10 个人用，我自己一个人做
+
+> **stackpilot 推荐一下**：我不会写代码，想让 Cursor 帮我写，做什么合适？
+
+> **用 stackpilot 的 C11 给我生成启动 Prompt**，需求是做个随机听电台的网页
+
+它会返回一段 Markdown。**你要的东西是最后那块「给 AI 的启动指令」**——
+把它整段复制，粘回同一个对话（或新开一个），AI 就会照着那套架构开始搭。
+
+> 💡 **不用配 key 也能用。** 没配 `ANTHROPIC_API_KEY` 时它走关键词规则解析 + 模板文案，
+> 免费、即时，输出里会标明走的是哪条路。配了 key 会换成模型解析，更准。
+
+---
+
 把一句大白话变成**技术选型 + 一段可以直接粘给 AI 的启动 Prompt**。
 
 给谁用：用 Cursor / Claude Code / Qoder 写代码、但不想自己纠结"该用什么技术栈"的人。
@@ -8,6 +82,10 @@
 底层是一个**闭集**：12 套真实组合（C01–C12）+ 一张人工打分的维度表。
 它不是让模型自由发挥——模型只负责"把理由说成人话"，**选哪套、装什么、第一步做什么，
 全部由确定性的引擎算出来**。这样同一句需求永远得到同一个答案。
+
+> **形态说明**：MCP 是主形态。仓库里的 Web 页面（`npm run dev`）保留为**调试台**，
+> 改渲染逻辑时用它比走 MCP 快得多，但它不再是用户入口。
+> 为什么这么定，见 `docs/ADR-002-vibe-coding-pivot.md`。
 
 ---
 
