@@ -1,0 +1,322 @@
+{
+  "meta": {
+    "purpose": "D1-B 结果验证集（holdout）：真实已上线项目，用于验证打分引擎的**选型命中率**。",
+    "protocol": [
+      "① 第一遍只读帖子的「需求侧」信息，抓取时明确禁止输出任何技术栈名称；",
+      "② 依据第一遍结果填 constraint_vector；",
+      "③ 第二遍才读技术栈，填入 ground_truth；",
+      "④ 顺序不可颠倒。本轮 27 条帖子全部按此执行，第一遍的 prompt 里写死了「严禁输出技术栈/框架/语言/库名称」。"
+    ],
+    "raw_input_kind": "reconstructed_from_post —— 帖子是「做完了」的复盘，不是「求推荐」的原始提问。raw_input 是改写成「开工前的需求陈述」，改写本身引入偏差，每条在 bias_note 里注明。",
+    "ground_truth_source": "帖子正文里作者自述的技术栈，非我方推测。框架名未披露的，fe_family 记 unnamed，不猜。",
+    "filter": "入选门槛：≥6/9 字段可判定 且 正文明确写出技术栈。27 条读过，8 条新入选 + 已深读 2 条 = 10 条。",
+    "yield_note": "27 条真实「我做了个产品」帖里只有 8 条（29.6%）同时满足两条门槛。未入选的 19 条中：14 条正文完全没提技术栈（只写「用 AI 写的」「Vibe Coding」），3 条字段不足 6/9，2 条技术栈只写到部署形态（Docker/Web UI）没到语言层。这个产出率本身是产品级发现，见 D1 第二阶段报告。",
+    "total": 10,
+    "status": "PILOT — 10 条，未达 20 条目标，原因见 yield_note"
+  },
+  "cases": [
+    {
+      "id": "H01",
+      "v2ex_id": 1148355,
+      "source_url": "https://www.v2ex.com/t/1148355",
+      "title": "朋友是汉语老师，给小朋友取中文名太费脑子，我做了个 AI 工具帮她",
+      "fields_non_null": 9,
+      "raw_input": "我朋友是教外国小朋友学中文的老师，她给班上孩子取中文名特别费劲：不能简单音译，得考虑字义、文化背景、读音好不好听、符不符合中国人命名习惯。每次取一个名字要查字典翻古诗想半天，家长还不一定满意。我想给她做个网站，输入英文名能生成几个候选中文名，每个都带拼音、字义解释和文化背景，能按性别和风格筛，还能收藏喜欢的。就她和她同事用，量很小。",
+      "blind_constraint_vector": {
+        "delivery": "web", "team_size": "1",
+        "skills": { "js": 0.6, "python": 0.1, "sql": 0.0, "ops": 0.1 },
+        "timeline_weeks": 12, "budget_cny_month": 0, "expected_users": 50,
+        "required_capabilities": ["ai"], "compliance": [], "goal_type": "internal_tool"
+      },
+      "why_null": {
+        "skills": "作者自述「从未接触 AI 应用的程序员」——会编程但没说语言。js 0.6 是推断，是这条最弱的一环。",
+        "timeline_weeks": "原文「花了几个月」，取 12 周为区间中值。"
+      },
+      "ground_truth": {
+        "fe_family": "nextjs",
+        "fe_detail": "Next.js 15 (App Router) + TypeScript + Tailwind CSS + shadcn/ui + Zustand + React Hook Form + Zod",
+        "has_db": false, "has_separate_backend": false,
+        "backend_detail": "Cloudflare Pages Functions（仅做 AI 代理）",
+        "ai_detail": "OpenRouter.ai + moonshotai/kimi-k2",
+        "deploy_detail": "Cloudflare Pages",
+        "storage": "localStorage（收藏）"
+      },
+      "bias_note": "改写时写入了「就她和她同事用，量很小」，原文没明确用户量。这对引擎有利，不掩盖失配。"
+    },
+    {
+      "id": "H02",
+      "v2ex_id": 1251148,
+      "source_url": "https://www.v2ex.com/t/1251148",
+      "title": "花了两周做了个 bra size 计算器，纯静态 + Cloudflare Pages",
+      "fields_non_null": 8,
+      "raw_input": "我想做一个面向美国用户的尺码计算器网站，用户输入身体围度，算出参考尺码。顺带做几个细分页面：只要 band size 的、查姊妹码的、英寸厘米换算的。目的是跑一遍从关键词研究到 SEO 部署的完整流程，看能不能靠搜索流量拿到用户。功能就是纯计算，不需要登录，不需要存任何用户数据。",
+      "blind_constraint_vector": {
+        "delivery": "web", "team_size": "1",
+        "skills": { "js": 0.6, "python": 0.2, "sql": 0.0, "ops": 0.1 },
+        "timeline_weeks": 2, "budget_cny_month": 0, "expected_users": null,
+        "required_capabilities": [], "compliance": [], "goal_type": "product"
+      },
+      "why_null": {
+        "expected_users": "原文通篇谈「搜索流量」但没给目标数字，属「用户说了但没说量级」，填 null 不猜。"
+      },
+      "ground_truth": {
+        "fe_family": "static",
+        "fe_detail": "纯静态 HTML/CSS/JS，图形用内联 SVG",
+        "has_db": false, "has_separate_backend": false,
+        "backend_detail": null, "ai_detail": null,
+        "deploy_detail": "Cloudflare Pages", "storage": null
+      },
+      "bias_note": "保留了原文明确说过的「不需要登录、不需要存用户数据」。"
+    },
+    {
+      "id": "H03",
+      "v2ex_id": 1250369,
+      "source_url": "https://www.v2ex.com/t/1250369",
+      "title": "用 Rust 写了个数据库客户端 DbCat，大部分代码是 AI 写的",
+      "fields_non_null": 7,
+      "raw_input": "我平时要同时连 MySQL、PostgreSQL、Redis，偶尔还有 ClickHouse 和 SQL Server。用过的几个工具开起来慢、吃内存，我就想要一个原生、用起来舒服的。想做的功能：连十几种数据库、表格就地编辑（先暂存预览 SQL 再提交）、可视化改表结构、ER 图、SQL 补全、执行计划、导入导出、SSH 隧道、SSL，连接可设只读或写前确认。就自己用，顺便开源。现在只做 macOS，后面有精力再加 Windows。",
+      "blind_constraint_vector": {
+        "delivery": "desktop", "team_size": "1",
+        "skills": { "js": 0.2, "python": 0.1, "sql": 0.6, "ops": 0.2 },
+        "timeline_weeks": null, "budget_cny_month": 0, "expected_users": null,
+        "required_capabilities": ["auth"], "compliance": ["personal_data"], "goal_type": "portfolio"
+      },
+      "why_null": {
+        "timeline_weeks": "原文没说做了多久。",
+        "expected_users": "开源工具，没说用户量。",
+        "skills": "作者用 Rust，但 ConstraintVector.skills 只有 js/python/sql/ops 四个槽位，**没有 Rust/Go/Java**。这里用 sql 0.6 表达「懂数据库」，js 0.2 表达「不是 Web 前端背景」，是近似映射，不是事实。"
+      },
+      "ground_truth": {
+        "fe_family": "native",
+        "fe_detail": "Rust + GPUI（GPU 渲染原生界面），无 Electron / WebView",
+        "has_db": false, "has_separate_backend": false,
+        "backend_detail": null,
+        "deploy_detail": "macOS 原生 app，Apple 公证 + 内置自动更新；Linux 上 Docker 交叉编译",
+        "storage": "macOS 钥匙串存密码"
+      },
+      "bias_note": "skills 的映射是本次最大的标注缺陷：Rust 作者被迫用 js/sql 近似表达，见 why_null。"
+    },
+    {
+      "id": "H04",
+      "v2ex_id": 1251052,
+      "source_url": "https://www.v2ex.com/t/1251052",
+      "title": "做了近 10 年合租车主，我开源了自己的订阅账本 Calends",
+      "fields_non_null": 7,
+      "raw_input": "我开合租车快 10 年了，用过十几款订阅管理工具，都不太匹配我的场景：除了记订了什么、花了多少钱，还要记成员付到哪天、哪些钱没收、自己垫了多少，还有跨区、涨价、代付、礼品卡。我想自己做一个，能接 AI 用自然语言增删改订阅，也能让 Agent 通过 MCP 管理我的账本。想开源，别人可以自己部署到服务器或 NAS 上。",
+      "blind_constraint_vector": {
+        "delivery": "web", "team_size": "1",
+        "skills": { "js": 0.5, "python": 0.1, "sql": 0.4, "ops": 0.6 },
+        "timeline_weeks": null, "budget_cny_month": 0, "expected_users": null,
+        "required_capabilities": ["auth", "ai"], "compliance": ["personal_data"], "goal_type": "product"
+      },
+      "why_null": {
+        "timeline_weeks": "原文没说开发周期。",
+        "expected_users": "个人自用 + 开源，没说用户量。",
+        "skills": "作者没说自己会什么语言，ops 0.6 是从「能自己写 Docker 部署方案」反推的。"
+      },
+      "ground_truth": {
+        "fe_family": "unnamed",
+        "fe_detail": "未点名前端框架",
+        "has_db": true, "has_separate_backend": true,
+        "backend_detail": "Cloudflare Workers + D1；另有 Docker 自托管形态",
+        "ai_detail": "DeepSeek API + MCP server",
+        "deploy_detail": "Docker 自托管 或 Cloudflare Workers + D1",
+        "storage": "D1 / SQLite"
+      },
+      "bias_note": "原文写了两种部署形态（Docker / Workers+D1），我按「主流使用方式」记为 Workers+D1，这是选择而非事实。"
+    },
+    {
+      "id": "H05",
+      "v2ex_id": 1250520,
+      "source_url": "https://www.v2ex.com/t/1250520",
+      "title": "做了款开源免费表情包编辑器，5872 张表情包素材",
+      "fields_non_null": 7,
+      "raw_input": "我想做一个在线表情包编辑器：直接识别图里的文字，把每个字拆成小格子，支持原位改字、增删字符。要能在网页里打开就用，我不想搞后端，也不要花钱，开源免费不赚钱，就当交个朋友。",
+      "blind_constraint_vector": {
+        "delivery": "web", "team_size": "1",
+        "skills": { "js": 0.6, "python": 0.1, "sql": 0.0, "ops": 0.1 },
+        "timeline_weeks": null, "budget_cny_month": 0, "expected_users": null,
+        "required_capabilities": [], "compliance": [], "goal_type": "portfolio"
+      },
+      "why_null": {
+        "timeline_weeks": "原文没说做了多久。",
+        "expected_users": "开源公益项目，没说用户量。"
+      },
+      "ground_truth": {
+        "fe_family": "static",
+        "fe_detail": "纯前端网页 + 网页 OCR（作者明写「无需后端」），托管在 GitHub Pages",
+        "has_db": false, "has_separate_backend": false,
+        "backend_detail": null, "ai_detail": "浏览器内 OCR",
+        "deploy_detail": "GitHub Pages", "storage": null
+      },
+      "bias_note": "「不想搞后端、不要花钱」是原文明确写的（无需后端 + GitHub Pages 免费托管）。"
+    },
+    {
+      "id": "H06",
+      "v2ex_id": 1249321,
+      "source_url": "https://www.v2ex.com/t/1249321",
+      "title": "做了个网页电台：随机一站，听听世界上 3.5 万个电台此刻在播什么",
+      "fields_non_null": 6,
+      "raw_input": "上班路上爱听广播，但经常听一半就到公司了；干活时也想听点新鲜的。我想做个网页：打开按一下就随机掉进世界上某个城市的电台，同一个浏览器下次打开能接着上次听；按「下一站」随机换台，能只听高码率；能读到曲名的直接显示，读不到的点一下就识别；收藏的歌能跳到音乐 App 去搜。星图按流派铺开可以拖着逛，也有地球视图。不要账号、不要广告，收藏只存浏览器里。",
+      "blind_constraint_vector": {
+        "delivery": "web", "team_size": "1",
+        "skills": { "js": 0.8, "python": 0.1, "sql": 0.4, "ops": 0.3 },
+        "timeline_weeks": null, "budget_cny_month": null, "expected_users": null,
+        "required_capabilities": [], "compliance": [], "goal_type": "product"
+      },
+      "why_null": {
+        "timeline_weeks": "原文没说开发周期。",
+        "budget_cny_month": "原文没提服务器成本。",
+        "expected_users": "帖子 1.8 万浏览，但作者没说实际用户量，不能拿浏览量当用户量。"
+      },
+      "ground_truth": {
+        "fe_family": "react-spa",
+        "fe_detail": "React + three.js（星图是几万个粒子）",
+        "has_db": true, "has_separate_backend": true,
+        "backend_detail": "Node + SQLite",
+        "ai_detail": "Whisper 在浏览器本地跑（后加功能）",
+        "deploy_detail": "未披露", "storage": "SQLite"
+      },
+      "bias_note": "「不要账号、收藏只存浏览器」是原文写的，所以 required_capabilities 记 []，不是漏填。"
+    },
+    {
+      "id": "H07",
+      "v2ex_id": 1251345,
+      "source_url": "https://www.v2ex.com/t/1251345",
+      "title": "sshfs-win-tray：600KB 的 SSHFS-Win 图形前端，把 SSH 服务器挂成 Windows 盘符",
+      "fields_non_null": 7,
+      "raw_input": "我在 Windows 上要用资源管理器直接访问 Linux 服务器上的文件。一直用的那个管理器升级到新系统后连不上了，上游项目也停更多年，所以自己写一个。要能管连接列表、打开盘符、新增编辑复制删除，关窗后驻留托盘；三种认证方式（私钥、保存的密码、每次询问）；盘符可指定或自动分配，可开机自启、启动自动连接、断线重连；还要有调试模式能看输出，连不上时能看到具体原因。做成单个 exe，不要安装、不要运行时，配置可以放在 exe 旁边。",
+      "blind_constraint_vector": {
+        "delivery": "desktop", "team_size": "1",
+        "skills": { "js": 0.1, "python": 0.2, "sql": 0.0, "ops": 0.4 },
+        "timeline_weeks": null, "budget_cny_month": 0, "expected_users": null,
+        "required_capabilities": ["auth"], "compliance": ["personal_data"], "goal_type": "portfolio"
+      },
+      "why_null": {
+        "timeline_weeks": "原文没说做了多久。",
+        "expected_users": "开源小工具，没说用户量。",
+        "skills": "作者用 Rust 写原生 Win32，schema 无 Rust 槽位，只能给低 js/python 分，属于无法表达。"
+      },
+      "ground_truth": {
+        "fe_family": "native",
+        "fe_detail": "Rust + 原生 Win32 控件，唯一依赖 windows-sys；单 exe 约 600KB，无运行时",
+        "has_db": false, "has_separate_backend": false,
+        "backend_detail": null,
+        "deploy_detail": "GitHub Releases 单文件 exe；Linux 上 Docker 交叉编译；CI 在 Windows Server 上实跑",
+        "storage": "配置文件放 exe 旁；密码用 DPAPI 加密"
+      },
+      "bias_note": "「不要安装、不要运行时、单 exe」是原文的硬约束，说明作者对交付形态有强偏好。"
+    },
+    {
+      "id": "H08",
+      "v2ex_id": 1251291,
+      "source_url": "https://www.v2ex.com/t/1251291",
+      "title": "做了几个不上传文件的浏览器小工具：去照片定位、批量改名预览、图片合并 PDF",
+      "fields_non_null": 7,
+      "raw_input": "我是独立开发者，平时做 Mac 和 iPhone 小应用。想把几个常用功能做成网页版：一是列出一张照片里带了什么定位和拍摄信息，再下载一份干净的副本；二是粘贴文件名、按规则批量改名，先看每个新名字和冲突，再生成一段不会覆盖文件的脚本；三是把截图和照片按顺序合成一个没有水印的 PDF。全部要求在浏览器本地跑，文件绝对不能上传。",
+      "blind_constraint_vector": {
+        "delivery": "web", "team_size": "1",
+        "skills": { "js": 0.7, "python": 0.1, "sql": 0.0, "ops": 0.1 },
+        "timeline_weeks": null, "budget_cny_month": 0, "expected_users": null,
+        "required_capabilities": [], "compliance": ["personal_data"], "goal_type": "product"
+      },
+      "why_null": {
+        "timeline_weeks": "原文没说做了多久。",
+        "expected_users": "没说用户量。",
+        "required_capabilities": "填 [] 是刻意的：处理文件 ≠ 需要文件存储。这些工具在浏览器本地处理，服务端不存任何文件。这个区分在 schema 里没有槽位，见 bias_note。"
+      },
+      "ground_truth": {
+        "fe_family": "static",
+        "fe_detail": "纯前端网页，浏览器本地处理，零后端（框架未点名）",
+        "has_db": false, "has_separate_backend": false,
+        "backend_detail": null, "ai_detail": null,
+        "deploy_detail": "未披露", "storage": null
+      },
+      "bias_note": "required_capabilities 的 'file' 语义歧义：它现在既可能指「用户上传文件」也可能指「需要文件存储」。这条如果被标成 ['file']，C11 会被硬排除，但作者的真实约束恰恰是「不要服务端」。"
+    },
+    {
+      "id": "H09",
+      "v2ex_id": 1251253,
+      "source_url": "https://www.v2ex.com/t/1251253",
+      "title": "做了个麦当劳 MCP 省钱助手「麦麦精算师」",
+      "fields_non_null": 6,
+      "raw_input": "麦当劳搞了个创意开发比赛，开放了一批点餐相关的接口能力。我发现精打细算吃一顿麦当劳其实很累：先一张张领券，再翻菜单记住自己有哪些券，脑子里排列组合算哪个搭配最划算，逐个试价格，还要看积分快过期没、这周有什么活动，最后还不一定选到最优解。我想做个工具把这几步压成一句话：一键全领券、拉菜单和券做全组合算价取前三、检测积分过期并推荐兑换、叠加当月活动、最后附一份营养报告。希望能被 AI 客户端直接调用，也希望能直接在命令行跑。",
+      "blind_constraint_vector": {
+        "delivery": null, "team_size": "1",
+        "skills": { "js": 0.2, "python": 0.7, "sql": 0.0, "ops": 0.1 },
+        "timeline_weeks": null, "budget_cny_month": 0, "expected_users": null,
+        "required_capabilities": ["ai"], "compliance": [], "goal_type": "portfolio"
+      },
+      "why_null": {
+        "delivery": "ConstraintVector.delivery 的枚举里没有 cli，只能留 null，靠 raw_input 里的「命令行」兜底判定。这是 schema 缺口。",
+        "timeline_weeks": "原文没说做了多久。",
+        "expected_users": "比赛项目，没说用户量。"
+      },
+      "ground_truth": {
+        "fe_family": "script",
+        "fe_detail": "Python 脚本，调用 16 个 MCP 工具；可当 AgentSkill 加载，也可命令行直接跑",
+        "has_db": false, "has_separate_backend": false,
+        "backend_detail": null, "ai_detail": "依赖外部 AI 客户端 + 麦当劳 MCP",
+        "deploy_detail": "无部署，本地脚本", "storage": null
+      },
+      "bias_note": "delivery 枚举缺 cli 是硬缺口，导致这条的 delivery 只能为 null，进而拉低字段数。"
+    },
+    {
+      "id": "H10",
+      "v2ex_id": 1251166,
+      "source_url": "https://www.v2ex.com/t/1251166",
+      "title": "开源！公众号一键发布工具懒人版",
+      "fields_non_null": 7,
+      "raw_input": "我想把公众号写作、封面、发布这一整套自动化。之前把底层插件都开源了，但很多人反馈太麻烦，因为内容创作者大多不懂技术。所以想把所有包整合成一个版本，一条命令就能拉起全部服务，有点动手能力的小白也能用。功能要有：口令登录、文章排版（支持自定义 CSS，理论上能复刻见过的所有排版）、封面模板配置，配一次对所有文章生效。",
+      "blind_constraint_vector": {
+        "delivery": "web", "team_size": "1",
+        "skills": { "js": 0.6, "python": 0.1, "sql": 0.2, "ops": 0.7 },
+        "timeline_weeks": null, "budget_cny_month": 0, "expected_users": null,
+        "required_capabilities": ["auth"], "compliance": ["personal_data"], "goal_type": "portfolio"
+      },
+      "why_null": {
+        "timeline_weeks": "原文没说开发周期。",
+        "expected_users": "开源项目，没说用户量。",
+        "skills": "作者是「从技术角度考虑太多」的开发者，具体语言未明说，js 0.6 是从「写了大量前端渲染插件」反推。"
+      },
+      "ground_truth": {
+        "fe_family": "unnamed",
+        "fe_detail": "Bun 运行时 + milkdown 渲染 + 自定义语法组件",
+        "has_db": true, "has_separate_backend": true,
+        "backend_detail": "bun-wx-server（自建服务）",
+        "ai_detail": "写作环节接 AI（提到 Opus / miniMax）",
+        "deploy_detail": "docker compose up 拉起全部服务",
+        "storage": "未明说（有草稿与配置，必然要持久化）"
+      },
+      "bias_note": "「一条命令拉起全部服务」是原文写的，对应 selfhost 形态，但 delivery 枚举里也没有 selfhost，只能记 web。"
+    }
+  ],
+  "supplementary": [
+    {
+      "id": "HX1",
+      "v2ex_id": 1251199,
+      "source_url": "https://www.v2ex.com/t/1251199",
+      "title": "自己有取名需求，做了个根据八字取名的小程序",
+      "fields_non_null": 3,
+      "excluded_reason": "只有 3/9 字段可判定，不满足入选门槛，故不计入 10 条分母；保留用于置信度拦截的对照。",
+      "raw_input": "我自己有取名需求，做了个根据八字取名的小程序。输入姓氏、生日、性别，自动分析筛选出带评分的候选名，还有个投票功能。",
+      "blind_constraint_vector": {
+        "delivery": "miniprogram", "team_size": null, "skills": null,
+        "timeline_weeks": null, "budget_cny_month": null, "expected_users": null,
+        "required_capabilities": ["ai"], "compliance": ["personal_data"], "goal_type": null
+      },
+      "why_null": {
+        "team_size": "原文完全没说。", "skills": "原文完全没说。",
+        "timeline_weeks": "原文完全没说。", "budget_cny_month": "原文完全没说。",
+        "expected_users": "原文完全没说。", "goal_type": "无法判断是自用、作品集还是商业产品。"
+      },
+      "ground_truth": {
+        "fe_family": "miniprogram", "fe_detail": "微信小程序",
+        "has_db": null, "has_separate_backend": null,
+        "backend_detail": "未披露", "ai_detail": "DeepSeek API（评论区确认）",
+        "deploy_detail": "未披露", "storage": "未披露（有投票功能，必然要存数据）"
+      },
+      "bias_note": "raw_input 几乎照抄原文（正文只有两句话）。这是真实求助帖的常态：信息量远低于引擎的输入要求。"
+    }
+  ]
+}

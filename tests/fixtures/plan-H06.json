@@ -1,0 +1,70 @@
+{
+  "combo_id": "C01",
+  "one_pager": {
+    "headline": "一个人不写后端，最快跑通带登录和数据库的网页产品",
+    "why": "你只有一个人，JS 熟练度 0.8 而 Python 只有 0.1，这套只用 JavaScript 一门语言；登录和数据库由 Supabase 托管，省掉后端代码和运维，正好补上你「收藏只存」需要的数据持久化。",
+    "first_step": {
+      "action": "打开 supabase.com，用 GitHub 账号登录，新建一个 project，把 Project URL 和 anon key 复制到记事本",
+      "minutes": 10
+    }
+  },
+  "not_chosen": [
+    {
+      "combo_id": "C03",
+      "what": "React 前端 + Python 后端两套服务",
+      "why": "你 Python 只有 0.1，前后端两种语言会同时卡住你，一个人维护两套服务调试链路太长。",
+      "reconsider_when": "等你有了团队、并且愿意长期维护前后端两套服务时，再回头看它",
+      "source_when_to_leave": "当团队只有你一个人、且不打算长期维护两套服务时，退回 C01"
+    },
+    {
+      "combo_id": "C11",
+      "what": "纯前端加 Edge Functions，没有数据库",
+      "why": "它没有数据库，收藏这类数据只能存浏览器本地，换设备就不同步，满足不了你的数据持久化需求。",
+      "reconsider_when": "等你的产品确定不做登录、也不需要多用户共享数据时，它才够用",
+      "source_when_to_leave": "当需要登录、需要多用户共享数据、或需要按用户做配额时，离开这套，改用 C01"
+    },
+    {
+      "combo_id": "C09",
+      "what": "Next.js 加 FastAPI 加 LangGraph 重编排",
+      "why": "LangGraph 在 Python 生态，你 Python 只有 0.1，单人同时维护两套服务调试链路太长。",
+      "reconsider_when": "等你的工具调用步骤多到 AI SDK 的 streamText 撑不住时，再考虑它",
+      "source_when_to_leave": "当工具调用少于 5 步时，退回 C01 用 AI SDK 的 streamText 即可"
+    }
+  ],
+  "next_three_steps": [
+    {
+      "action": "在本地终端跑 npx create-next-app@latest my-app，一路回车选默认，再 cd my-app 跑 npm run dev 看首页能不能打开",
+      "minutes": 30,
+      "blocker": "Node 版本太旧会报错，先跑 node -v 确认是 18 以上"
+    },
+    {
+      "action": "在项目里跑 npm install @supabase/supabase-js，新建 .env.local 写入 NEXT_PUBLIC_SUPABASE_URL 和 NEXT_PUBLIC_SUPABASE_ANON_KEY，再写一个页面调 supabase.auth.signInWithOAuth 试登录",
+      "minutes": 60,
+      "blocker": "Supabase 国内访问不稳定，第一次连不上别急着改代码，先确认网络能打开 supabase.com"
+    },
+    {
+      "action": "在 Supabase 控制台建一张收藏表，打开 RLS 并加一条「用户只能读写自己行」的策略，然后在页面里用 supabase.from('收藏表').insert 存一条数据并刷新验证",
+      "minutes": 120,
+      "blocker": "RLS 策略写错会一直返回空数组，先在控制台 SQL 编辑器里手动 insert 一条确认表结构没问题"
+    }
+  ],
+  "pitfalls": [
+    {
+      "text": "Supabase 国内访问不稳定，第一次连不上会误以为是自己代码写错了，先确认浏览器能打开 supabase.com 再排查代码",
+      "source_index": 0
+    },
+    {
+      "text": "别把 service_role key 写进前端环境变量，它等于全部数据权限，前端只能用 anon key",
+      "source_index": 1
+    },
+    {
+      "text": "建完表一定要开 RLS 再上线，否则任何人都能读到别人的收藏数据",
+      "source_index": 2
+    }
+  ],
+  "lighter_alternative": {
+    "needed": false,
+    "combo_id": null,
+    "why": "你明确需要数据持久化（收藏只存），更轻的 C11 和 C12 都没有服务端数据库，换过去收藏功能就做不了，所以不降档。"
+  }
+}

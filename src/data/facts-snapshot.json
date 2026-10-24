@@ -1,0 +1,461 @@
+{
+  "generated_at": "2026-10-23",
+  "kb_version": "1.0.0",
+  "records": [
+    {
+      "entry_id": "FE-01",
+      "ecosystem": "npm",
+      "package": "next",
+      "version": "16.4.2",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "16.4.2",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "FE-02",
+      "ecosystem": "npm",
+      "package": "nuxt",
+      "version": "4.6.2",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "4.6.2",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "FE-03",
+      "ecosystem": "npm",
+      "package": "@sveltejs/kit",
+      "version": "3.1.0",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "3.1.0",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "FE-04",
+      "ecosystem": "npm",
+      "package": "vite",
+      "version": "8.3.5",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "8.3.5",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "FE-06",
+      "ecosystem": "dateBuild",
+      "package": "@dcloudio/uni-app",
+      "version": "2.0.2-5020620260917001",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "2.0.2-5020620260917001",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": false,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "BE-02",
+      "ecosystem": "npm",
+      "package": "hono",
+      "version": "4.13.13",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "4.13.13",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "BE-03",
+      "ecosystem": "pypi",
+      "package": "fastapi",
+      "version": "0.161.1",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "pypi:info.version",
+          "version": "0.161.1",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "BE-04",
+      "ecosystem": "npm",
+      "package": "@nestjs/core",
+      "version": "12.2.0",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "12.2.0",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "BE-05",
+      "ecosystem": "maven",
+      "package": "org.springframework.boot:spring-boot-starter-parent",
+      "version": "4.1.2",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "maven-metadata:versions",
+          "version": "4.1.2",
+          "fail_reason": null
+        },
+        {
+          "source": "search.maven.org:latestVersion",
+          "version": "3.5.3",
+          "fail_reason": null
+        }
+      ],
+      "conflict": true,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "BE-06",
+      "ecosystem": "npm",
+      "package": "@supabase/supabase-js",
+      "version": "2.118.0",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "2.118.0",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "DB-03",
+      "ecosystem": "npm",
+      "package": "drizzle-orm",
+      "version": "0.45.4",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "0.45.4",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "DB-04",
+      "ecosystem": "npm",
+      "package": "prisma",
+      "version": "7.10.1",
+      "prerelease_latest": true,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "7.10.1",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "AI-01",
+      "ecosystem": "npm",
+      "package": "ai",
+      "version": "7.0.150",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "7.0.150",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "AI-02",
+      "ecosystem": "npm",
+      "package": "@langchain/langgraph",
+      "version": "1.5.2",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "1.5.2",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "AI-02",
+      "ecosystem": "pypi",
+      "package": "langgraph",
+      "version": "1.2.16",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "pypi:info.version",
+          "version": "1.2.16",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "AI-03",
+      "ecosystem": "npm",
+      "package": "@langchain/core",
+      "version": "1.3.0",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "1.3.0",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "AI-03",
+      "ecosystem": "pypi",
+      "package": "langchain",
+      "version": "1.4.7",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "pypi:info.version",
+          "version": "1.4.7",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "AI-04",
+      "ecosystem": "pypi",
+      "package": "openai",
+      "version": "3.37.0",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "pypi:info.version",
+          "version": "3.37.0",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "DP-01",
+      "ecosystem": "npm",
+      "package": "vercel",
+      "version": "65.2.0",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "65.2.0",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "DP-02",
+      "ecosystem": "npm",
+      "package": "wrangler",
+      "version": "4.152.0",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "4.152.0",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "entry_id": "DP-03",
+      "ecosystem": "npm",
+      "package": "@cloudbase/cli",
+      "version": "3.8.8",
+      "prerelease_latest": false,
+      "sources": [
+        {
+          "source": "npm:dist-tags",
+          "version": "3.8.8",
+          "fail_reason": null
+        }
+      ],
+      "conflict": false,
+      "semver_applicable": true,
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    }
+  ],
+  "github": [
+    {
+      "repo": "vercel/next.js",
+      "stars": 143197,
+      "pushed_at": "2026-10-23T09:59:09Z",
+      "activity": "OK",
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "repo": "nuxt/nuxt",
+      "stars": 60979,
+      "pushed_at": "2026-10-23T07:48:52Z",
+      "activity": "OK",
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "repo": "sveltejs/kit",
+      "stars": 20868,
+      "pushed_at": "2026-10-23T05:08:07Z",
+      "activity": "OK",
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "repo": "vitejs/vite",
+      "stars": 83475,
+      "pushed_at": "2026-10-23T08:34:07Z",
+      "activity": "OK",
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "repo": "nestjs/nest",
+      "stars": 76888,
+      "pushed_at": "2026-10-23T07:24:57Z",
+      "activity": "OK",
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "repo": "spring-projects/spring-boot",
+      "stars": 81770,
+      "pushed_at": "2026-10-23T10:01:52Z",
+      "activity": "OK",
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "repo": "supabase/supabase",
+      "stars": 113667,
+      "pushed_at": "2026-10-23T10:12:40Z",
+      "activity": "OK",
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    },
+    {
+      "repo": "langchain-ai/langgraph",
+      "stars": 43767,
+      "pushed_at": "2026-10-23T01:20:00Z",
+      "activity": "OK",
+      "fail_reason": null,
+      "verified_at": "2026-10-23"
+    }
+  ],
+  "stats": {
+    "total": 21,
+    "ok": 21,
+    "failed": 0,
+    "conflicts": 1
+  }
+}

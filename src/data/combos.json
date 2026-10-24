@@ -1,0 +1,420 @@
+{
+  "meta": {
+    "version": "1.6.0",
+    "generated_at": "2026-10-23",
+    "combo_count": 12,
+    "kb_component_count": 23,
+    "static_combo_note": "【v1.4.0 新增 C12】纯静态 / 零后端形态。D1 的 10 条真实样本里有 3 条（H02/H05/H08）真实栈是'纯静态、无框架、无后端'，而旧闭集 11 套**全部带后端层**（连 C11 也有 BE-01 Route Handlers + Edge Functions）——于是'要不要独立后端'这个判断只能判对 3/7。C12 复用 FE-04（Vite+React）与 DP-02（Cloudflare Pages），不新增 KB 组件，kb_component_count 仍 23。它同时开了一个新范式 E（纯静态），因为把'没有后端'归进 A（全栈）语义上是错的。",
+    "capability_note": "【v1.5.0 语义降级】data_persistence 由「硬性需求」降级为「建议项」：它不再参与任何 hard_exclude，只影响 fit —— C01/C02 +1（带 DB 是这类需求的正确方向），C11/C12 -1（零服务端持久化，换设备即丢）。原因：第二轮真人访谈里 R2（Python 半技术）与 R3（后端半技术）都指出「MVP 阶段存进度只需 LocalStorage，不必上数据库」，2/2 认为旧版「存/记录/保存/历史 → 需要数据库」的推断偏重；而一票否决会让用户**根本看不到**「纯静态 + 本地存」这个选项。降级后它仍然可见，只是排在带 DB 的方案后面。【为什么不按数据类型分档 +1/-1】引擎当前没有任何「数据类型（会话级偏好 vs 业务数据）」信号；硬造一个没人填的字段，会变成和 multi_platform、coverage=partial 一样的死代码。等 M1 第二阶段接入 LLM、由模型判断数据类型后再启用分档。",
+    "zero_db_combo_note": "C11 是唯一 db 槽位为 null 的组合（D1 发现的零数据库缺口修复）。它不新增 KB 组件，复用 FE-01/BE-01/AI-01/DP-02，所以 kb_component_count 仍为 23。注意：scoreCombo 只用 base_scores 与 fit_rules，不读 components，因此 db=null 不影响打分；comboSignature 已用 ?? 'NONE' 兜底，指纹为 FE-01|BE-01|NONE|AI-01|DP-02。",
+    "no_persistence_note": "【v1.6.0 新增反向能力 no_persistence】修的是极性 bug：旧 schema 只能表达「要存数据」，表达不了「明确不要存」。用户说「收藏只存浏览器里」时，模型只能二选一——填 data_persistence（语义正好相反，会把 C11/C12 各扣 1 分，把最该赢的方案压下去）或者留空（信息丢失）。现在多一个 no_persistence 取值，C11/C12 各 +1。三条使用规则：① 与 data_persistence 互斥，同时出现视为模型自相矛盾，两个都丢；② 一旦存在，normalizeVector 不再从原文推断 data_persistence（否则一边说不要一边被补成要）；③ 只给零数据库方案加分，不给带 DB 的方案减分——一个用户表述只能被计算一次，C11/C12 各 +1 已经让相对次序正确，再给 C01/C02 减 1 等于同一句话算两遍。",
+    "note": "组合模板层（ComboTemplates）。F4 打分引擎直接对这套模板打分，不对散装组件打分。理由见 PRD v0.4 §6.6：组合难度不等于组件难度平均，集成成本才是新手真正的墙。",
+    "score_dims": {
+      "learning": "上手成本（5=最容易上手）",
+      "ecosystem": "生态与文档（5=最丰富）",
+      "ops": "运维负担（5=最省心）",
+      "cost": "成本（5=最便宜）",
+      "fit": "需求匹配度基准（5=最通用；由 fit_rules 的 delta 加减）",
+      "portability": "可迁移性（5=最容易换）"
+    },
+    "score_scale": "1-5 整数。基准分由人工设定，M0 D4 访谈后校准。",
+    "fit_semantics": "v1.1 起 fit_rules 使用 delta 增量，按规则累加后 clamp(1,5)，与数组顺序无关。旧版 last-match-wins 会导致加分被后续规则意外覆盖。",
+    "lang_semantics": "lang 表示用户实际要写后端代码的语言，用于计算「技能栈违背率」指标，不参与打分。",
+    "data_honesty": "beginner_pitfalls 与 when_to_leave 为待验证项（opinion，非可实测事实），M0 D4 必须找真实用户核实，核实前不得在 UI 中作为确定结论展示。evidence.pitfall_articles 由 M1 人工填充，不预置未经核实的链接。"
+  },
+
+  "combos": [
+    {
+      "id": "C01",
+      "name": "Next.js + Supabase 全栈托管",
+      "one_liner": "不写后端代码就能有登录和数据库，一个人最快跑通 Web 产品",
+      "first_step": "打开 supabase.com，用 GitHub 登录建一个 project，把 Project URL 和 anon key 抄到记事本",
+      "first_step_minutes": 10,
+      "paradigm": "C",
+      "lang": "ts",
+      "components": { "fe": "FE-01", "be": "BE-06", "db": "DB-01", "ai": "AI-01", "deploy": "DP-01" },
+      "base_scores": { "learning": 4, "ecosystem": 5, "ops": 5, "cost": 4, "fit": 4, "portability": 4 },
+      "fit_rules": [
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "auth" }, "delta": 1 },
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "realtime" }, "delta": 1 },
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "data_persistence" }, "delta": 1 },
+        { "when": { "field": "team_size", "op": "eq", "value": "5+" }, "delta": -2 },
+        { "when": { "all": [ { "field": "skills.python", "op": "gte", "value": 0.6 }, { "field": "skills.js", "op": "lt", "value": 0.6 }, { "field": "required_capabilities", "op": "contains", "value": "ai" } ] }, "delta": -2.5 },
+        { "when": { "field": "timeline_weeks", "op": "lte", "value": 2 }, "delta": -1 }
+      ],
+      "hard_exclude_when": [
+        { "field": "delivery", "op": "eq", "value": "miniprogram", "reason": "Supabase 与 Next.js 均不适用于微信小程序运行时" },
+        { "field": "compliance", "op": "contains", "value": "payment", "reason": "支付需服务端签名，纯托管 BaaS 方案不足以承载合规要求" },
+        { "field": "expected_users", "op": "gt", "value": 10000, "reason": "免费额度不足以支撑万级日活，需自建或付费" }
+      ],
+      "beginner_pitfalls": [
+        "Supabase 国内访问不稳定，第一次连不上会误以为是自己代码错了",
+        "把 service_role key 写进前端环境变量，会泄露全部数据权限",
+        "RLS 没开就上线，任何人都能读到别人的数据"
+      ],
+      "when_to_leave": "当日活超过 1 万、或需要复杂服务端定时任务与事务时，考虑 C02 或 C09",
+      "evidence": {
+        "official_docs": ["https://nextjs.org/docs", "https://supabase.com/docs"],
+        "pitfall_articles": []
+      }
+    },
+    {
+      "id": "C02",
+      "name": "Next.js + Route Handlers + Postgres 自建",
+      "one_liner": "全栈框架自己管后端和数据库，比 C01 多一步配置但控制力更强",
+      "first_step": "终端跑 `npx create-next-app@latest`，再用 Docker 起一个本地 Postgres，能连上看到表",
+      "first_step_minutes": 25,
+      "paradigm": "A",
+      "lang": "ts",
+      "components": { "fe": "FE-01", "be": "BE-01", "db": "DB-01", "ai": "AI-01", "deploy": "DP-01" },
+      "base_scores": { "learning": 3, "ecosystem": 5, "ops": 3, "cost": 4, "fit": 4, "portability": 5 },
+      "fit_rules": [
+        { "when": { "field": "compliance", "op": "contains", "value": "personal_data" }, "delta": 1 },
+        { "when": { "field": "goal_type", "op": "eq", "value": "portfolio" }, "delta": 1 },
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "data_persistence" }, "delta": 1 },
+        { "when": { "all": [ { "field": "skills.python", "op": "gte", "value": 0.6 }, { "field": "skills.js", "op": "lt", "value": 0.6 }, { "field": "required_capabilities", "op": "contains", "value": "ai" } ] }, "delta": -2.5 }
+      ],
+      "hard_exclude_when": [
+        { "field": "skills.sql", "op": "lt", "value": 0.3, "reason": "需要自己建库、写迁移、配连接串，SQL 基础不足会卡住" },
+        { "field": "timeline_weeks", "op": "lte", "value": 2, "reason": "建库与迁移配置至少占 3-5 天，两周内难以跑通" },
+        { "field": "delivery", "op": "eq", "value": "miniprogram", "reason": "小程序无法直接复用 Next.js 运行时" }
+      ],
+      "beginner_pitfalls": [
+        "连接串写进代码提交到 GitHub，数据库被扫到",
+        "本地能跑、线上连不上，因为没配连接池（Serverless 每次请求新建连接会打爆数据库）",
+        "迁移文件顺序错乱导致表结构对不上"
+      ],
+      "when_to_leave": "当需要独立扩缩容后端、或有超过 30 秒的长任务时，考虑 C03 或 C09",
+      "evidence": {
+        "official_docs": ["https://nextjs.org/docs", "https://www.postgresql.org/docs/"],
+        "pitfall_articles": []
+      }
+    },
+    {
+      "id": "C03",
+      "name": "React SPA + FastAPI + Postgres",
+      "one_liner": "前后端分离的 Python 路线，AI 生态最顺，但要维护两个服务",
+      "first_step": "终端跑 `pip install fastapi uvicorn`，把后端 hello world 跑在 localhost:8000",
+      "first_step_minutes": 15,
+      "paradigm": "B",
+      "lang": "py",
+      "components": { "fe": "FE-04", "be": "BE-03", "db": "DB-01", "ai": "AI-04", "deploy": "DP-03" },
+      "base_scores": { "learning": 2, "ecosystem": 4, "ops": 2, "cost": 3, "fit": 5, "portability": 5 },
+      "fit_rules": [
+        { "when": { "field": "skills.python", "op": "gte", "value": 0.5 }, "delta": 1 },
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "ai" }, "delta": 1 },
+        { "when": { "field": "team_size", "op": "eq", "value": "1" }, "delta": -2 }
+      ],
+      "hard_exclude_when": [
+        { "field": "delivery", "op": "eq", "value": "miniprogram", "reason": "前后端分离的 Web 方案无法运行在微信小程序容器内" },
+        { "field": "skills.python", "op": "lt", "value": 0.3, "reason": "用户不熟 Python，前后端两套语言会同时卡住" },
+        { "field": "timeline_weeks", "op": "lte", "value": 3, "reason": "两个服务的部署与联调至少多花 1 周" }
+      ],
+      "beginner_pitfalls": [
+        "跨域（CORS）配错，前端一直报 blocked by CORS policy，这是新手第一大坑",
+        "前后端分别部署，改了接口忘了重新部署后端",
+        "本地 127.0.0.1 能通、线上不通，因为前端把地址写死成了 localhost"
+      ],
+      "when_to_leave": "当团队只有你一个人、且不打算长期维护两套服务时，退回 C01",
+      "evidence": {
+        "official_docs": ["https://fastapi.tiangolo.com/", "https://react.dev/"],
+        "pitfall_articles": []
+      }
+    },
+    {
+      "id": "C04",
+      "name": "React SPA + Hono + SQLite 边缘轻量",
+      "one_liner": "几乎零成本、秒级冷启动，适合小工具和个人项目",
+      "first_step": "终端跑 `npm create vite@latest`，再 `npm i hono`，本地起一个返回 hello 的接口",
+      "first_step_minutes": 20,
+      "paradigm": "B",
+      "lang": "ts",
+      "components": { "fe": "FE-04", "be": "BE-02", "db": "DB-02", "ai": "AI-01", "deploy": "DP-02" },
+      "base_scores": { "learning": 3, "ecosystem": 3, "ops": 4, "cost": 5, "fit": 3, "portability": 3 },
+      "fit_rules": [
+        { "when": { "field": "budget_cny_month", "op": "eq", "value": 0 }, "delta": 2 },
+        { "when": { "field": "expected_users", "op": "lt", "value": 100 }, "delta": 2 }
+      ],
+      "hard_exclude_when": [
+        { "field": "delivery", "op": "eq", "value": "miniprogram", "reason": "边缘运行时方案无法运行在微信小程序容器内" },
+        { "field": "expected_users", "op": "gt", "value": 1000, "reason": "边缘运行时 + SQLite 不适合高并发写入" },
+        { "field": "required_capabilities", "op": "contains", "value": "file", "reason": "边缘环境无持久本地磁盘，文件需另接对象存储" },
+        { "field": "compliance", "op": "contains", "value": "personal_data", "reason": "数据落在境外边缘节点，境内个人信息合规风险" }
+      ],
+      "beginner_pitfalls": [
+        "以为 Cloudflare 支持全部 Node API，结果 fs / child_process 全不可用",
+        "SQLite 在边缘是只读或需另配 D1，本地写的代码线上跑不通"
+      ],
+      "when_to_leave": "当需要写文件、需要长连接、或用户量上来后，换 C01 或 C03",
+      "evidence": {
+        "official_docs": ["https://hono.dev/", "https://developers.cloudflare.com/"],
+        "pitfall_articles": []
+      }
+    },
+    {
+      "id": "C05",
+      "name": "Nuxt + Supabase 全栈托管（Vue 派）",
+      "one_liner": "C01 的 Vue 版本，模板语法对新手更友好",
+      "first_step": "终端跑 `npx nuxi@latest init`，看到 Nuxt 欢迎页",
+      "first_step_minutes": 15,
+      "paradigm": "C",
+      "lang": "ts",
+      "components": { "fe": "FE-02", "be": "BE-06", "db": "DB-01", "ai": "AI-01", "deploy": "DP-01" },
+      "base_scores": { "learning": 3, "ecosystem": 4, "ops": 5, "cost": 4, "fit": 4, "portability": 3 },
+      "fit_rules": [
+        { "when": { "field": "skills.js", "op": "gte", "value": 0.5 }, "delta": 1 },
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "auth" }, "delta": 1 },
+        { "when": { "all": [ { "field": "skills.python", "op": "gte", "value": 0.6 }, { "field": "skills.js", "op": "lt", "value": 0.6 }, { "field": "required_capabilities", "op": "contains", "value": "ai" } ] }, "delta": -2.5 }
+      ],
+      "hard_exclude_when": [
+        { "field": "delivery", "op": "eq", "value": "miniprogram", "reason": "Nuxt 不适用于小程序运行时" },
+        { "field": "compliance", "op": "contains", "value": "payment", "reason": "需服务端签名，托管 BaaS 不足" }
+      ],
+      "beginner_pitfalls": [
+        "网上 Next.js 教程远多于 Nuxt，遇到问题搜不到答案",
+        "Nuxt 的 auto-import 会让新手搞不清变量从哪来"
+      ],
+      "when_to_leave": "当发现找不到足够多的中文教程时，换回 C01",
+      "evidence": {
+        "official_docs": ["https://nuxt.com/docs", "https://supabase.com/docs"],
+        "pitfall_articles": []
+      }
+    },
+    {
+      "id": "C06",
+      "name": "SvelteKit + SQLite 极简",
+      "one_liner": "语法最简单、依赖最少，适合只求跑通不求扩展的场景",
+      "first_step": "终端跑 `npx sv create`，数据库选 SQLite，把默认页跑起来",
+      "first_step_minutes": 15,
+      "paradigm": "A",
+      "lang": "ts",
+      "components": { "fe": "FE-03", "be": "BE-01", "db": "DB-02", "ai": "AI-04", "deploy": "DP-02" },
+      "base_scores": { "learning": 5, "ecosystem": 3, "ops": 4, "cost": 5, "fit": 3, "portability": 2 },
+      "fit_rules": [
+        { "when": { "field": "goal_type", "op": "eq", "value": "internal_tool" }, "delta": 2 },
+        { "when": { "field": "timeline_weeks", "op": "lte", "value": 2 }, "delta": 2 },
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "auth" }, "delta": -1 },
+        { "when": { "field": "team_size", "op": "eq", "value": "5+" }, "delta": -1 },
+        { "when": { "all": [ { "field": "skills.python", "op": "gte", "value": 0.6 }, { "field": "skills.js", "op": "lt", "value": 0.6 }, { "field": "required_capabilities", "op": "contains", "value": "ai" } ] }, "delta": -2.5 }
+      ],
+      "hard_exclude_when": [
+        { "field": "delivery", "op": "eq", "value": "miniprogram", "reason": "SvelteKit 无法运行在微信小程序容器内" },
+        { "field": "team_size", "op": "eq", "value": "5+", "reason": "Svelte 人才池小，团队协作与招人困难" },
+        { "field": "expected_users", "op": "gt", "value": 1000, "reason": "SQLite 单文件不适合高并发" },
+        { "field": "goal_type", "op": "eq", "value": "portfolio", "reason": "技术栈小众，简历辨识度反而偏低" }
+      ],
+      "beginner_pitfalls": [
+        "中文资料少，卡住时几乎没有可搜的答案",
+        "UI 组件库生态弱，想快速做出好看的界面比较费劲"
+      ],
+      "when_to_leave": "当需要招人、或需要大量现成组件时，换 C01",
+      "evidence": {
+        "official_docs": ["https://svelte.dev/docs/kit", "https://developers.cloudflare.com/"],
+        "pitfall_articles": []
+      }
+    },
+    {
+      "id": "C07",
+      "name": "原生小程序 + 微信云开发",
+      "one_liner": "只做微信内的小程序时，这是最短路径",
+      "first_step": "装微信开发者工具，用 AppID 建一个空项目，看到模拟器里的默认页",
+      "first_step_minutes": 20,
+      "paradigm": "D",
+      "lang": "js",
+      "components": { "fe": "FE-05", "be": "BE-06", "db": "DB-01", "ai": "AI-04", "deploy": "DP-03" },
+      "base_scores": { "learning": 4, "ecosystem": 4, "ops": 5, "cost": 4, "fit": 3, "portability": 1 },
+      "fit_rules": [
+        { "when": { "field": "delivery", "op": "eq", "value": "miniprogram" }, "delta": 2 },
+        { "when": { "field": "compliance", "op": "contains", "value": "payment" }, "delta": 1 }
+      ],
+      "hard_exclude_when": [
+        { "field": "delivery", "op": "in", "value": ["web", "desktop", "api"], "reason": "原生小程序无法跨端" },
+        { "field": "expected_users", "op": "gt", "value": 10000, "reason": "云开发配额在万级用户后成本陡增" }
+      ],
+      "beginner_pitfalls": [
+        "小程序需要备案与类目审核，个人主体很多类目不能做",
+        "本地调试正常、真机预览白屏，通常是域名未加入白名单",
+        "云开发的数据库权限规则与 Supabase RLS 完全不同，容易混淆"
+      ],
+      "when_to_leave": "当需要同时上 H5 或 App 时，换 C08",
+      "evidence": {
+        "official_docs": ["https://developers.weixin.qq.com/miniprogram/dev/framework/"],
+        "pitfall_articles": []
+      }
+    },
+    {
+      "id": "C08",
+      "name": "uni-app + Supabase 多端",
+      "one_liner": "一套代码同时出小程序和 H5，代价是踩坑变多",
+      "first_step": "终端跑 `npx degit dcloudio/uni-preset-vue my-app`，用 HBuilderX 打开跑起来",
+      "first_step_minutes": 25,
+      "paradigm": "D",
+      "lang": "ts",
+      "components": { "fe": "FE-06", "be": "BE-06", "db": "DB-01", "ai": "AI-01", "deploy": "DP-03" },
+      "base_scores": { "learning": 3, "ecosystem": 3, "ops": 4, "cost": 4, "fit": 4, "portability": 2 },
+      "fit_rules": [
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "multi_platform" }, "delta": 1 },
+        { "when": { "field": "team_size", "op": "eq", "value": "1" }, "delta": -2 }
+      ],
+      "hard_exclude_when": [
+        { "field": "timeline_weeks", "op": "lte", "value": 4, "reason": "多端适配的联调时间通常超出预估一倍" }
+      ],
+      "beginner_pitfalls": [
+        "各端 API 不一致，写了条件编译后自己都看不懂",
+        "版本号是日期式构建号（如 2.0.2-5020620260917001），升级时容易踩不兼容",
+        "小程序端包体积超限，需要分包"
+      ],
+      "when_to_leave": "当只需要单端时，直接用 C07 或 C01，别为多端付成本",
+      "evidence": {
+        "official_docs": ["https://uniapp.dcloud.net.cn/", "https://supabase.com/docs"],
+        "pitfall_articles": []
+      }
+    },
+    {
+      "id": "C09",
+      "name": "Next.js + FastAPI + LangGraph 重编排",
+      "one_liner": "Agent 逻辑复杂到需要图编排时才用，学习成本最高",
+      "first_step": "终端跑 `pip install fastapi uvicorn`，先让后端返回一个固定 JSON，别急着接 LangGraph",
+      "first_step_minutes": 20,
+      "paradigm": "B",
+      "lang": "py",
+      "components": { "fe": "FE-01", "be": "BE-03", "db": "DB-01", "ai": "AI-02", "deploy": "DP-03" },
+      "base_scores": { "learning": 1, "ecosystem": 5, "ops": 2, "cost": 3, "fit": 5, "portability": 5 },
+      "fit_rules": [
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "ai" }, "delta": 1 },
+        { "when": { "field": "goal_type", "op": "eq", "value": "portfolio" }, "delta": -1 }
+      ],
+      "hard_exclude_when": [
+        { "field": "delivery", "op": "eq", "value": "miniprogram", "reason": "双服务架构无法运行在微信小程序容器内" },
+        { "field": "skills.python", "op": "lt", "value": 0.5, "reason": "LangGraph 主要在 Python 生态，需较强 Python 基础" },
+        { "field": "timeline_weeks", "op": "lte", "value": 6, "reason": "图编排 + 双服务联调，6 周内难以产出可用版本" },
+        { "field": "team_size", "op": "eq", "value": "1", "reason": "单人同时维护 Next.js 与 FastAPI，调试链路过长" }
+      ],
+      "beginner_pitfalls": [
+        "LangGraph 的状态管理与检查点概念对新手是陡坡，容易写出死循环",
+        "双服务调试链路长，一个报错要跨两个终端排查",
+        "以为上了 LangGraph 就更专业，实际简单工具调用根本用不到图"
+      ],
+      "when_to_leave": "当工具调用少于 5 步时，退回 C01 用 AI SDK 的 streamText 即可",
+      "evidence": {
+        "official_docs": ["https://langchain-ai.github.io/langgraph/", "https://fastapi.tiangolo.com/"],
+        "pitfall_articles": []
+      }
+    },
+    {
+      "id": "C10",
+      "name": "NestJS + Postgres + LangChain 企业向",
+      "one_liner": "小团队做长期产品、需要清晰分层时的 TypeScript 重方案",
+      "first_step": "终端跑 `npx @nestjs/cli new api`，再 `npm run start:dev` 看到 Hello World",
+      "first_step_minutes": 20,
+      "paradigm": "B",
+      "lang": "ts",
+      "components": { "fe": "FE-04", "be": "BE-04", "db": "DB-01", "ai": "AI-03", "deploy": "DP-03" },
+      "base_scores": { "learning": 1, "ecosystem": 4, "ops": 2, "cost": 3, "fit": 4, "portability": 4 },
+      "fit_rules": [
+        { "when": { "field": "team_size", "op": "eq", "value": "5+" }, "delta": 1 },
+        { "when": { "field": "goal_type", "op": "eq", "value": "product" }, "delta": 1 }
+      ],
+      "hard_exclude_when": [
+        { "field": "delivery", "op": "eq", "value": "miniprogram", "reason": "NestJS 分层后端无法运行在微信小程序容器内" },
+        { "field": "team_size", "op": "eq", "value": "1", "reason": "NestJS 的模块/依赖注入体系对单人是纯负担" },
+        { "field": "timeline_weeks", "op": "lte", "value": 8, "reason": "分层架构的搭建成本在 8 周内收不回来" },
+        { "field": "goal_type", "op": "eq", "value": "internal_tool", "reason": "内部工具用不上这套分层，属于过度设计" }
+      ],
+      "beginner_pitfalls": [
+        "依赖注入与模块体系概念多，新手容易照抄但说不清原理",
+        "装饰器写法与普通 Express 差异大，网上答案经常不通用"
+      ],
+      "when_to_leave": "当团队缩到 1-2 人、或只需要快速验证时，退回 C01",
+      "evidence": {
+        "official_docs": ["https://docs.nestjs.com/", "https://js.langchain.com/docs/"],
+        "pitfall_articles": []
+      }
+    },
+    {
+      "id": "C11",
+      "name": "Next.js 纯前端 + Edge Functions（无数据库）",
+      "one_liner": "不需要登录、不需要存数据时，一个前端加一个 AI key 就能上线",
+      "first_step": "终端跑 `npx create-next-app@latest`，跑起来，先不接任何服务",
+      "first_step_minutes": 15,
+      "paradigm": "C",
+      "lang": "ts",
+      "components": { "fe": "FE-01", "be": "BE-01", "db": null, "ai": "AI-01", "deploy": "DP-02" },
+      "base_scores": { "learning": 5, "ecosystem": 4, "ops": 5, "cost": 5, "fit": 4, "portability": 3 },
+      "fit_rules": [
+        {
+          "when": {
+            "all": [
+              { "field": "required_capabilities", "op": "not_contains", "value": "file" },
+              { "field": "required_capabilities", "op": "not_contains", "value": "auth" }
+            ]
+          },
+          "delta": 1
+        },
+        { "when": { "field": "expected_users", "op": "gt", "value": 1000 }, "delta": -2 },
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "data_persistence" }, "delta": -1 },
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "no_persistence" }, "delta": 1 }
+      ],
+      "hard_exclude_when": [
+        { "field": "required_capabilities", "op": "contains", "value": "file", "reason": "文件存储需要持久化后端，纯前端 + Edge 函数无法承载" },
+        { "field": "delivery", "op": "eq", "value": "miniprogram", "reason": "小程序有自己的云开发体系，不需要 Next.js + Cloudflare 这套" },
+        { "field": "required_capabilities", "op": "contains", "value": "auth", "reason": "登录必须有账号存储，零数据库方案没有用户表，硬做只能把账号塞进 localStorage，换设备即丢" },
+        { "field": "required_capabilities", "op": "contains", "value": "payment", "reason": "支付需要服务端校验与订单持久化，零数据库无法留存订单状态" }
+      ],
+      "beginner_pitfalls": [
+        "没有数据库意味着刷新页面数据就没了：收藏、草稿这类功能只能存 localStorage，换设备不同步",
+        "Edge Functions 有执行时长限制，大文件解析、长文本生成这类长任务会被截断，要改成流式或分段",
+        "API key 写进前端环境变量等于公开，必须走 Edge Function 代理，并加一层最简限流"
+      ],
+      "when_to_leave": "当需要登录、需要多用户共享数据、或需要按用户做配额时，离开这套，改用 C01",
+      "evidence": {
+        "official_docs": ["https://nextjs.org/docs", "https://developers.cloudflare.com/pages/functions/"],
+        "pitfall_articles": []
+      }
+    },
+    {
+      "id": "C12",
+      "name": "Vite + React 纯静态（零后端）",
+      "one_liner": "所有逻辑跑在浏览器里，构建成静态文件丢到 Pages 上，没有服务器也就没有服务器成本和运维",
+      "first_step": "终端跑 `npm create vite@latest`，再 `npm run dev` 看到 Vite 默认页",
+      "first_step_minutes": 10,
+      "paradigm": "E",
+      "lang": "ts",
+      "components": { "fe": "FE-04", "be": null, "db": null, "ai": null, "deploy": "DP-02" },
+      "base_scores": { "learning": 5, "ecosystem": 4, "ops": 5, "cost": 5, "fit": 4, "portability": 3 },
+      "fit_rules": [
+        {
+          "when": {
+            "all": [
+              { "field": "required_capabilities", "op": "not_contains", "value": "auth" },
+              { "field": "required_capabilities", "op": "not_contains", "value": "file_storage" },
+              { "field": "required_capabilities", "op": "not_contains", "value": "data_persistence" },
+              { "field": "required_capabilities", "op": "not_contains", "value": "ai" }
+            ]
+          },
+          "delta": 1
+        },
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "data_persistence" }, "delta": -1 },
+        { "when": { "field": "required_capabilities", "op": "contains", "value": "no_persistence" }, "delta": 1 }
+      ],
+      "hard_exclude_when": [
+        { "field": "required_capabilities", "op": "contains", "value": "auth", "reason": "登录需要账号存储，纯静态没有服务端，硬做只能把账号塞进 localStorage，换设备即丢" },
+        { "field": "required_capabilities", "op": "contains", "value": "payment", "reason": "支付需要服务端签名与订单持久化，纯静态无法承载" },
+        { "field": "required_capabilities", "op": "contains", "value": "file_storage", "reason": "服务端存文件需要持久化后端，纯静态做不到。注意：用户只是在前端选文件（file_upload）不算，浏览器本地处理是可以的" },
+        { "field": "required_capabilities", "op": "contains", "value": "realtime", "reason": "实时同步需要服务端长连接或推送通道，纯静态没有" },
+        { "field": "required_capabilities", "op": "contains", "value": "ai", "reason": "纯静态没有服务端，API key 写进前端等于公开，必须走 Edge Function 代理 —— 这类需求用 C11" },
+        { "field": "delivery", "op": "eq", "value": "miniprogram", "reason": "小程序有自己的运行时与云开发体系，用不上 Vite + Pages 这套" }
+      ],
+      "beginner_pitfalls": [
+        "没有服务端就没有任何数据共享：你和同事在不同设备上看到的东西不一样，所有状态只活在自己浏览器里，清缓存就没了",
+        "纯客户端渲染不利于 SEO。靠搜索流量获客的工具站（比如尺码计算器、单位换算）要考虑静态生成或干脆用纯 HTML，否则搜索引擎抓不到内容",
+        "GitHub Pages 的项目页路径带 /repo/ 前缀，构建产物的 base 没配对会整站白屏或刷新 404"
+      ],
+      "when_to_leave": "当需要登录、多设备同步、或要把数据存在服务端时，离开这套改用 C01；需要 AI 但不想把 key 暴露在前端时，改用 C11",
+      "evidence": {
+        "official_docs": ["https://vite.dev/guide/", "https://react.dev/", "https://developers.cloudflare.com/pages/"],
+        "pitfall_articles": []
+      }
+    }
+  ]
+}

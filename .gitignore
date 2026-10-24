@@ -1,0 +1,20 @@
+# 依赖
+node_modules/
+
+# 凭据：只存在本机，永远不进仓库
+.env
+.env.local
+.env.*.local
+
+# 构建产物（由 `npm run build` 生成，不进仓库）
+build/
+
+# 旧的部署产物目录（已废弃，防止有人误提交）
+deploy/
+
+# 截图与临时输出
+out/
+*.log
+
+# 本地工具数据（AI 工作区记忆等），不属于产品代码
+.workbuddy-ai/

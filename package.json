@@ -1,0 +1,21 @@
+{
+  "name": "stackpilot",
+  "version": "1.6.0",
+  "private": true,
+  "type": "module",
+  "description": "用大白话描述需求，给出一套能落地的技术栈组合",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "node build/server.js",
+    "predev": "node scripts/build.mjs",
+    "dev": "node scripts/dev.mjs",
+    "dev:ts": "npx tsx server/index.ts",
+    "test": "npx tsx scripts/check-consistency.ts && npx tsx scripts/test-guards.ts && npx tsx scripts/test-view-model.ts && npx tsx scripts/test-intake.ts"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.2"
+  }
+}

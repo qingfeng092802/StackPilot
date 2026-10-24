@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280">
+<title>StackPilot · 技术栈选型</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">◈</span>
+    <span class="brand-name">StackPilot</span>
+    <span class="brand-sub">用大白话说需求，给你一套能落地的技术栈</span>
+  </div>
+  <nav class="demo-tabs" id="demoTabs">
+    <span class="tabs-label">演示（冻结的真实数据，不调模型）</span>
+    <button data-state="high" class="tab">high</button>
+    <button data-state="medium" class="tab">medium</button>
+    <button data-state="low" class="tab">low</button>
+  </nav>
+</header>
+
+<main class="page">
+  <!-- ── 顶部：大白话输入 ───────────────────────────── -->
+  <section class="intake" id="intake">
+    <div class="intake-head">
+      <h1>你想做的东西，用大白话讲一遍就行</h1>
+      <p>
+        不用管「交付形态」「技能矩阵」这些词。你说的我照收，<b>你没说的我不会替你猜</b>——
+        缺什么我会挑最关键的几个问你。
+      </p>
+    </div>
+
+    <div class="intake-box">
+      <textarea id="rawInput" rows="4" placeholder="比如：我想做个帮人记账的小程序，大概 10 个人用，我会一点 Python……"></textarea>
+      <div class="intake-actions">
+        <button id="intakeBtn" class="primary">开始选型</button>
+        <button id="manualToggle" class="ghost" aria-expanded="false">我要自己填表</button>
+      </div>
+    </div>
+
+    <div class="examples" id="examples">
+      <span class="examples-label">没想好怎么说？点一个试试：</span>
+      <button class="example" data-ex="0">记账小程序</button>
+      <button class="example" data-ex="1">公司内部查资料</button>
+      <button class="example" data-ex="2">听世界电台</button>
+      <button class="example" data-ex="3">桌面照片管理</button>
+    </div>
+
+    <!-- 追问区：/api/intake 返回后渲染在这里 -->
+    <div id="askZone" class="ask-zone"></div>
+  </section>
+
+  <!-- ── 手动填表（默认收起，解析失败时自动展开）────── -->
+  <section class="manual" id="manual" hidden>
+    <div class="manual-head">
+      <h2>手动填表</h2>
+      <p>每项都会直接影响结果。留空不等于「不需要」——留空的项会拉低 confidence。</p>
+    </div>
+    <div id="formFields" class="form-grid"></div>
+    <div class="panel-actions">
+      <button id="manualRunBtn" class="primary">用这份表单跑一次（真实模型）</button>
+      <button id="mockBtn" class="ghost" title="不调模型，用 MockProvider 走完整链路">管道自测</button>
+    </div>
+    <p class="panel-foot">
+      真实模型需要服务端配置 <code>ANTHROPIC_API_KEY</code>；没配也能跑，会走兜底文案。
+    </p>
+  </section>
+
+  <!-- ── 结果 ──────────────────────────────────────── -->
+  <section class="result" id="result">
+    <div class="empty" id="empty">
+      <div class="empty-mark">◈</div>
+      <p>上面用大白话写一句，或点上方 high / medium / low 看三种置信度下的渲染效果。</p>
+    </div>
+    <div id="banner" class="banner-slot"></div>
+    <div id="meta" class="meta-slot"></div>
+    <div id="modules" class="modules"></div>
+  </section>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>
