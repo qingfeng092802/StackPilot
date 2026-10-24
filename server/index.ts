@@ -106,12 +106,29 @@ const MODULE_STAGGER_MS = Number(process.env.M3_MODULE_STAGGER_MS ?? 180);
  */
 function assertEnv(): void {
   const key = process.env.ANTHROPIC_API_KEY?.trim();
-  if (!key) {
+
+  /**
+   * "填了但没填对"要和"没填"分开报。
+   *
+   * 真实会发生的场景：从 .env.example 复制过来，忘了把占位符换掉。
+   * 那时变量**非空**，旧检查会放行，然后在用户点「开始选型」时才炸出一个 401，
+   * 看起来像"模型挂了"，而不是"你少粘了一个字符"。
+   * 在这里拦住，成本是一行判断，收益是省掉一次半小时的误判。
+   */
+  const PLACEHOLDER_RE = /(粘贴|替换|你的|填写|placeholder|your[_-]?key|change[_-]?me|xxxx|todo)/i;
+  const isPlaceholder = Boolean(key) && (PLACEHOLDER_RE.test(key!) || key!.length < 20 || /[\u4e00-\u9fa5]/.test(key!));
+
+  if (!key || isPlaceholder) {
     console.error('');
-    console.error('  ✗ 启动失败：缺少环境变量 ANTHROPIC_API_KEY');
+    if (!key) {
+      console.error('  ✗ 启动失败：缺少环境变量 ANTHROPIC_API_KEY');
+    } else {
+      console.error('  ✗ 启动失败：ANTHROPIC_API_KEY 还不是真实的 key');
+      console.error(`    （当前值长度 ${key.length}，看起来是占位符，或者没粘全）`);
+    }
     console.error('');
-    console.error('    本地：在项目根放 .env.local（不要提交），然后');
-    console.error('          node --env-file=.env.local build/server.js');
+    console.error('    本地：打开项目根的 .env.local，把 ANTHROPIC_API_KEY 换成真实 key，然后');
+    console.error('          npm run dev');
     console.error('    线上：在平台的环境变量面板里配置，不要写进代码或仓库');
     console.error('');
     process.exit(1);
@@ -540,12 +557,19 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`M3 渲染页已启动： http://localhost:${PORT}  （绑定 ${HOST}:${PORT}）`);
+  const localUrl = `http://localhost:${PORT}`;
+  console.log('');
+  console.log('  ==================================================');
+  console.log(`   打开这个地址：  ${localUrl}`);
+  console.log('  ==================================================');
+  console.log('   受访者在远端（不在你旁边）？另开一个终端跑：');
+  console.log(`     npx localtunnel --port ${PORT}`);
+  console.log('');
   if (SINGLE_PATH) {
-    console.log('  模式: 单路径折叠（SP_SINGLE_PATH=1）—— GET / 出内联页面，POST / 按 action 分发');
+    console.log('   模式：单路径折叠（SP_SINGLE_PATH=1）—— GET / 出内联页面，POST / 按 action 分发');
   } else {
-    console.log(`  演示（不调模型）: http://localhost:${PORT}/?demo=medium   （high / medium / low 三态）`);
-    console.log(`  真实链路: 页面顶部用大白话描述需求 → POST /api/intake → 追问 → POST /api/plan（需 ANTHROPIC_API_KEY）`);
+    console.log(`   演示（不调模型）： ${localUrl}/?demo=medium   （high / medium / low 三态）`);
   }
-  console.log(`  模块间隔: ${MODULE_STAGGER_MS}ms（M3_MODULE_STAGGER_MS 可调，0 为不间隔）`);
+  console.log(`   模块间隔：${MODULE_STAGGER_MS}ms（M3_MODULE_STAGGER_MS 可调，0 为不间隔）`);
+  console.log('');
 });
