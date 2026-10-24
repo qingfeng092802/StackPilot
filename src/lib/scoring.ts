@@ -24,6 +24,55 @@ import {
 export type GoalType = 'portfolio' | 'product' | 'internal_tool';
 
 /**
+ * 【v1.7.0 · Vibe Coding 定位】AI 参与方式。
+ *
+ * 取代旧的 `skills`（JS/Python/SQL 熟练度）。
+ *
+ * 为什么换：目标用户变成"用 Cursor / Agent 写代码的人"。他们不需要会语言，
+ * 只需要一个**最容易让 AI 一次写对**的架构。问"你会 JS 吗"在这个定位下是错的问题——
+ * 会与不会都不影响 AI 写代码，真正影响结论的是"谁写、人改多少"。
+ *
+ * 三档的差别不是能力高低，而是**权重不同**：
+ *   full_auto —— 人基本不碰代码。AI 一次写对最重要（ai_friendliness 权重最高）。
+ *   assisted  —— AI 写、人来改。可读性与生态更重要（ecosystem 权重最高）。
+ *   learning  —— 想借这个项目学。文档与教程最全的方案优先（ecosystem 最高，ai_friendliness 最低）。
+ *
+ * 缺省（null）按 `assisted` 算：它是最中庸的一档，不会把任何一类方案推得过猛。
+ */
+export type AiWorkflow = 'full_auto' | 'assisted' | 'learning';
+
+export const AI_WORKFLOW_VALUES: AiWorkflow[] = ['full_auto', 'assisted', 'learning'];
+
+export interface ConstraintVector {
+  delivery?: DeliveryForm | null;
+  team_size?: '1' | '2-3' | '5+' | null;
+  /** 【v1.7.0】取代 skills。null = 没说，按 assisted 处理 */
+  ai_workflow?: AiWorkflow | null;
+  timeline_weeks?: number | null;
+  budget_cny_month?: number | null;
+  expected_users?: number | null;
+  required_capabilities?: Capability[] | null;
+  compliance?: string[] | null;
+  goal_type?: GoalType | null;
+}
+
+/**
+ * 【v1.7.0】`learning` 改名为 `ai_friendliness`（AI 友好度，5 = AI 最容易一次写对）。
+ *
+ * 不是纯改名：语义从"人上手多快"变成"AI 生成多准"，12 套组合的取值**重新评过**，
+ * 评据见 combos.json 的 `ai_friendliness_note`。旧值里 C06（SvelteKit）是 5，
+ * 但 Svelte 的公开语料明显少于 React，AI 写它更容易错——这正是旧口径测不出来的东西。
+ */
+export interface ScoreDims {
+  ai_friendliness: number;
+  ecosystem: number;
+  ops: number;
+  cost: number;
+  fit: number;
+  portability: number;
+}
+
+/**
  * 【v0.4.3】required_capabilities 的规范取值。
  *
  * 变更点（D1 真实数据暴露的三个表达缺口，见 D1 第二阶段报告）：
@@ -96,46 +145,6 @@ export type DeliveryForm =
   | 'cli'
   | 'selfhost';
 
-/**
- * 技能画像，0–1 的熟练度。
- * 【v0.4.3】补 go / rust / java：D1 的 10 条真实帖里有 4 条的作者主要用这三种语言，
- * 旧 schema 只能记 null。
- *
- * ⚠️ 已知缺口：strongestLang() 仍只看 js / python，所以 Go/Rust/Java 作者不会
- * 触发"技能栈违背率"。这是**故意留的**——扩指标口径会改变历史基线，
- * 需和 D1 的命中率一起在 v0.4.3 统一重算，不能顺手改。
- */
-export interface SkillProfile {
-  js?: number;
-  python?: number;
-  sql?: number;
-  ops?: number;
-  go?: number;
-  rust?: number;
-  java?: number;
-}
-
-export interface ConstraintVector {
-  delivery?: DeliveryForm | null;
-  team_size?: '1' | '2-3' | '5+' | null;
-  skills?: SkillProfile | null;
-  timeline_weeks?: number | null;
-  budget_cny_month?: number | null;
-  expected_users?: number | null;
-  required_capabilities?: Capability[] | null;
-  compliance?: string[] | null;
-  goal_type?: GoalType | null;
-}
-
-export interface ScoreDims {
-  learning: number;
-  ecosystem: number;
-  ops: number;
-  cost: number;
-  fit: number;
-  portability: number;
-}
-
 export interface ComboCondition {
   field?: string;
   op?: 'eq' | 'lt' | 'lte' | 'gt' | 'gte' | 'contains' | 'not_contains' | 'in';
@@ -179,17 +188,37 @@ export interface Combo {
  */
 export type WeightDims = Omit<ScoreDims, 'fit'>;
 
-export const WEIGHTS: Record<GoalType, WeightDims> = {
-  internal_tool: { learning: 0.39, ecosystem: 0.17, ops: 0.28, cost: 0.11, portability: 0.05 },
-  product: { learning: 0.19, ecosystem: 0.25, ops: 0.19, cost: 0.25, portability: 0.12 },
-  portfolio: { learning: 0.25, ecosystem: 0.31, ops: 0.13, cost: 0.13, portability: 0.18 },
+/**
+ * 【v1.7.0 重大变更】权重表从"按 goal_type 索引"改成"按 ai_workflow 索引"。
+ *
+ * 为什么换索引：旧表假设"做产品 vs 内部工具"决定该看重什么。但新定位下，
+ * 真正决定"该看重什么"的是**谁写代码**——
+ *   full_auto 的人不关心学习成本，只关心 AI 一次能不能写对；
+ *   learning 的人恰恰相反。
+ * goal_type 没有消失，它仍然通过 fit_rules 影响具体需求（作品集 +1 之类），
+ * 但不再决定权重。这样两件事分开了：**权重 = 工作方式，fit = 具体需求**。
+ *
+ * 每列和仍为 1.00（与旧表同样的纪律：scoreCombo 会除 Σw，但表本身必须自洽）。
+ */
+export const WEIGHTS: Record<AiWorkflow, WeightDims> = {
+  // 人基本不碰代码：AI 友好度压倒一切，其次是生态（语料多）、托管省心
+  full_auto: { ai_friendliness: 0.40, ecosystem: 0.28, ops: 0.20, cost: 0.07, portability: 0.05 },
+  // AI 写、人来改：可读性和生态最重要（要看得懂、查得到），AI 友好度次之
+  assisted: { ai_friendliness: 0.30, ecosystem: 0.32, ops: 0.18, cost: 0.12, portability: 0.08 },
+  // 想借项目学：文档与教程最全的优先，AI 友好度反而最不重要（本来就要自己写）
+  learning: { ai_friendliness: 0.20, ecosystem: 0.38, ops: 0.14, cost: 0.14, portability: 0.14 },
 };
 
+/** 缺省权重档。没说就按"AI 写我改"，它最中庸，不会把任何一类方案推得过猛 */
+export const DEFAULT_AI_WORKFLOW: AiWorkflow = 'assisted';
+
+export function workflowOf(v: ConstraintVector): AiWorkflow {
+  return v.ai_workflow ?? DEFAULT_AI_WORKFLOW;
+}
+
 function readField(v: ConstraintVector, path: string): any {
-  if (path.startsWith('skills.')) {
-    const k = path.slice('skills.'.length) as keyof NonNullable<ConstraintVector['skills']>;
-    return v.skills ? v.skills[k] : undefined;
-  }
+  // 【v1.7.0】原来这里有一段 `skills.*` 的取值分支，随 skills 字段一起删掉了。
+  // 现在所有字段都是顶层的，直接读即可。
   return (v as any)[path];
 }
 
@@ -323,8 +352,7 @@ export interface ScoredCombo {
  * fit=5 → ×1.00，fit=1 → ×0.64。匹配度差的方案无法靠生态分翻盘。
  */
 export function scoreCombo(c: Combo, v: ConstraintVector): ScoredCombo {
-  const goal: GoalType = v.goal_type ?? 'internal_tool';
-  const w = WEIGHTS[goal];
+  const w = WEIGHTS[workflowOf(v)];
   const { fit, deltas } = resolveFit(c, v);
 
   let sum = 0;
@@ -352,20 +380,6 @@ export function scoreCombo(c: Combo, v: ConstraintVector): ScoredCombo {
     fitDeltas: deltas,
     componentCount,
   };
-}
-
-/**
- * 用户最强的语言。仅当最强项 ≥ 0.5 时才算"有明确偏好"——
- * js 0.2 / python 0.3 这种属于都还不会，不该计入技能栈违背率。
- */
-export function strongestLang(v: ConstraintVector): 'ts' | 'py' | null {
-  const s = v.skills;
-  if (!s) return null;
-  const js = s.js ?? 0;
-  const py = s.python ?? 0;
-  const top = Math.max(js, py);
-  if (top < 0.5) return null;
-  return js >= py ? 'ts' : 'py';
 }
 
 export interface RankOptions {
@@ -403,8 +417,6 @@ export interface RankResult {
   runnerUps: ScoredCombo[];
   filteredOut: Array<{ id: string; reasons: string[] }>;
   candidateCount: number;
-  /** Top1 的 lang 与用户最强语言是否不一致（技能栈违背率指标） */
-  skillMismatch: boolean;
 }
 
 /**
@@ -520,11 +532,6 @@ export function rank(combos: Combo[], v: ConstraintVector, opts: RankOptions = {
   const chosen = new Set([top1.id, top2.id]);
   const runnerUps = scored.filter((s) => !chosen.has(s.id));
 
-  const sl = strongestLang(nv);
-  // JS 与 TS 属同一家族，不构成技能栈违背（C07 的 lang 是 js，用户会 JS 就算匹配）
-  const normalize = (l: string) => (l === 'js' ? 'ts' : l);
-  const skillMismatch = sl !== null && normalize(sl) !== normalize(top1.lang);
-
   return {
     ok: true,
     coverage_status: cov.status,
@@ -541,7 +548,6 @@ export function rank(combos: Combo[], v: ConstraintVector, opts: RankOptions = {
     runnerUps,
     filteredOut: filtered.filter((f) => f.excluded).map((f) => ({ id: f.combo.id, reasons: f.reasons })),
     candidateCount: passed.length,
-    skillMismatch,
   };
 }
 

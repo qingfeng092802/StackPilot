@@ -1,21 +1,42 @@
 {
-  "name": "stackpilot",
-  "version": "1.6.0",
-  "private": true,
+  "name": "stackpilot-mcp",
+  "version": "1.7.0",
+  "private": false,
   "type": "module",
-  "description": "用大白话描述需求，给出一套能落地的技术栈组合",
+  "description": "MCP Server：把一句大白话变成技术选型 + 可直接粘给 AI 的启动 Prompt",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "cursor",
+    "claude-code",
+    "vibe-coding",
+    "tech-stack"
+  ],
+  "license": "MIT",
   "engines": {
     "node": ">=20.11"
   },
+  "bin": {
+    "stackpilot-mcp": "build/mcp.js"
+  },
+  "files": [
+    "build/mcp.js",
+    "README.md"
+  ],
   "scripts": {
     "build": "node scripts/build.mjs",
     "start": "node build/server.js",
     "predev": "node scripts/build.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:ts": "npx tsx server/index.ts",
+    "mcp": "node build/mcp.js",
+    "mcp:smoke": "npx tsx scripts/mcp-smoke.ts",
     "test": "npx tsx scripts/check-consistency.ts && npx tsx scripts/test-guards.ts && npx tsx scripts/test-view-model.ts && npx tsx scripts/test-intake.ts"
   },
   "devDependencies": {
     "esbuild": "^0.25.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2"
   }
 }

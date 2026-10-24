@@ -38,30 +38,43 @@ check('每套组合都有 evidence.official_docs', combos.every((c: any) => Arra
 check('pitfall_articles 全部为空（未核实不预置）', combos.every((c: any) => (c.evidence?.pitfall_articles ?? []).length === 0));
 check('每套组合的 base_scores 六维齐全且 1-5', combos.every((c: any) => {
   const d = c.base_scores;
-  const keys = ['learning', 'ecosystem', 'ops', 'cost', 'fit', 'portability'];
+  const keys = ['ai_friendliness', 'ecosystem', 'ops', 'cost', 'fit', 'portability'];
   return keys.every((k) => typeof d[k] === 'number' && d[k] >= 1 && d[k] <= 5);
 }));
 check('fit_rules 用 delta 不用 score（旧语义已废弃）', combos.every((c: any) =>
   (c.fit_rules ?? []).every((r: any) => typeof r.delta === 'number' && r.score === undefined)));
 
 console.log('\n=== 2. 权重表：不含 fit（v0.4.2 不变量）===');
-const weightKeys = Object.keys(WEIGHTS.internal_tool);
+const weightKeys = Object.keys(WEIGHTS.assisted);
 check('权重维度为 5 个', weightKeys.length === 5, weightKeys.join(','));
 check('权重表不含 fit', !weightKeys.includes('fit'));
-check('各 goal_type 权重和为 1', Object.values(WEIGHTS).every((w: any) =>
+check('各 ai_workflow 权重和为 1', Object.values(WEIGHTS).every((w: any) =>
   Math.abs(Object.values(w).reduce((a: number, b: any) => a + b, 0) - 1) < 1e-9));
+check('权重表按 ai_workflow 索引（三档齐全）',
+  ['full_auto', 'assisted', 'learning'].every((k) => (WEIGHTS as any)[k]));
 
-console.log('\n=== 3. Python 亲和度规则：必须 3 个条件 ===');
-const pyRules = combos.flatMap((c: any) =>
-  (c.fit_rules ?? []).filter((r: any) => r.delta === -2.5).map((r: any) => ({ id: c.id, r })));
-check('存在 -2.5 规则', pyRules.length > 0, `共 ${pyRules.length} 处`);
-check('每处 -2.5 规则都是 3 个条件', pyRules.every(({ r }: any) => r.when.all?.length === 3));
-check('含 skills.js < 0.6 条件', pyRules.every(({ r }: any) =>
-  r.when.all.some((x: any) => x.field === 'skills.js' && x.op === 'lt' && x.value === 0.6)));
-const prdRuleBlock = prd.slice(prd.indexOf('关键规则（Python 亲和度）'), prd.indexOf('支持复合条件（`all`）'));
-check('PRD §6.6.4 示例含 skills.js 条件', prdRuleBlock.includes('skills.js'));
-check('PRD §6.6.4 示例是 3 条件', (prdRuleBlock.match(/"field"/g) ?? []).length === 3,
-  `实际 ${(prdRuleBlock.match(/"field"/g) ?? []).length} 个`);
+console.log('\n=== 3. ai_workflow 规则（v1.7.0 取代 skills）===');
+const wfRules = combos.flatMap((c: any) =>
+  (c.fit_rules ?? []).filter((r: any) => JSON.stringify(r.when ?? {}).includes('ai_workflow'))
+    .map((r: any) => ({ id: c.id, r })));
+check('存在 ai_workflow 规则', wfRules.length > 0, `共 ${wfRules.length} 处`);
+check('每条都是单条件 eq（可读、可解释）',
+  wfRules.every(({ r }: any) => !r.when.all && r.when.field === 'ai_workflow' && r.when.op === 'eq'));
+check('取值都在三档枚举里',
+  wfRules.every(({ r }: any) => ['full_auto', 'assisted', 'learning'].includes(r.when.value)));
+check('full_auto 下 C01 加分、C09 减分（方向正确）',
+  wfRules.some(({ id, r }: any) => id === 'C01' && r.when.value === 'full_auto' && r.delta > 0) &&
+  wfRules.some(({ id, r }: any) => id === 'C09' && r.when.value === 'full_auto' && r.delta < 0));
+
+// 防回退：v1.7.0 之后 combos.json 里不该再出现任何 skills 条件
+const anySkills = combos.some((c: any) =>
+  JSON.stringify(c.fit_rules ?? []).includes('skills.') ||
+  JSON.stringify(c.hard_exclude_when ?? []).includes('skills.'));
+check('combos.json 里没有任何 skills 条件（防止半迁移/回退）', !anySkills);
+check('12 套都有 ai_friendliness，且不再有 learning 字段',
+  combos.every((c: any) => typeof c.base_scores.ai_friendliness === 'number' && c.base_scores.learning === undefined));
+check('PRD §6.6.4 的 skills.js 示例已随 v1.7.0 废弃（代码里不再有该规则）',
+  !anySkills, 'PRD 未同步，属已知文档债');
 
 console.log('\n=== 4. PRD 数字与实际一致 ===');
 check('PRD 声明组件数 23', prd.includes('**23 条**') || prd.includes('23 条'));
@@ -278,13 +291,23 @@ check('normalizeVector 在 no_persistence 存在时不再推断 data_persistence
 
 // 8.6 置信度新判定表的关键档位
 const confOf = (cs: any) => rank(combos, cs.blind_constraint_vector, { raw_input: cs.raw_input }).confidence;
-const confTable: Array<[string, string]> = [['H01', 'high'], ['H04', 'medium'], ['H05', 'medium'], ['H06', 'medium']];
+/**
+ * 【v1.7.0 期望变更】H01 从 high 降为 medium。
+ *
+ * 原因是真实的：D1 的 10 条帖子写于"ai_workflow"这个概念存在之前，
+ * **没有一条说过"谁写代码"**。而 ai_workflow 在核心组里，
+ * 所以这批历史数据现在最多只能到 medium。
+ *
+ * 这不是回归——新定位下"谁写代码"确实决定权重档，缺了就该问一句。
+ * 但要让这条变化被看见，而不是悄悄改期望值，所以写在这里。
+ */
+const confTable: Array<[string, string]> = [['H01', 'medium'], ['H04', 'medium'], ['H05', 'medium'], ['H06', 'medium']];
 const confWrong = confTable.filter(([id, want]) => {
   const cs = d1Holdout.cases.find((c: any) => c.id === id);
   return confOf(cs) !== want;
 });
-check('核心组齐 + 补充组缺 ≥2 → medium（H04/H05/H06）', confWrong.length === 0,
-  confWrong.length ? `不符：${confWrong.map(([id, w]) => `${id} 期望 ${w}`).join('，')}` : 'H04/H05/H06 均 medium，H01 仍 high');
+check('D1 历史用例全部 medium（原文都没提"谁写代码"→ 核心组必缺 ai_workflow）', confWrong.length === 0,
+  confWrong.length ? `不符：${confWrong.map(([id, w]) => `${id} 期望 ${w}`).join('，')}` : 'H01/H04/H05/H06 均 medium');
 
 const ct04 = casesRaw.cases.find((c: any) => c.id === 'CT04');
 const rct04 = rank(combos, ct04.constraint_vector, { raw_input: ct04.raw_input });

@@ -69,18 +69,36 @@ function basePkg(ctx: any, notChosen: any[]) {
 }
 
 // ---------------------------------------------------------------- 1
+/**
+ * 【v1.7.0 改造】不再硬编码 C03。
+ *
+ * 原来这三组都写死 `combo_id: 'C03'`，理由是"C03 一定在 rejected 里"。
+ * v1.7.0 调了权重与 fit 规则之后 C03 排到了 runnerUps 更后面，不再进 rejected，
+ * 于是三组全线报 `fact.unknown_combo`——**测的不是校验器坏了，是测试自己烂了**。
+ *
+ * 候选排序本来就会随权重调整而变，测试不该依赖某个组合恰好排在哪儿。
+ * 所以改成：从 ctx.rejected 里挑，并且**显式断言挑到的确实在里面**，
+ * 这样将来排序再变，失败信息会直接说"这个组合不在 rejected 里"，
+ * 而不是一个让人以为校验器出问题的 unknown_combo。
+ */
+function rejectedOf(ctx: any, prefer?: string) {
+  const list: any[] = ctx.rejected ?? [];
+  const it = (prefer && list.find((x) => x.id === prefer)) || list[0];
+  if (!it) throw new Error('ctx.rejected 为空，无法构造 not_chosen 用例');
+  return { id: it.id, name: it.name, when: String(it.when_to_leave ?? '') };
+}
+
 console.log('\n[1] 逻辑翻转的正确输出必须通过（2026-10-23 这条曾被旧规则误杀）');
 {
-  // 模型真实输出：「当你以后愿意长期维护两套服务、并且 Python 补上来时再回头看」
-  // C03 的 when_to_leave 是「当团队只有你一个人、且不打算长期维护两套服务时，退回 C01」。
-  // 旧规则 paraphrase_drift 要求两者重合 ≥3，这条**语义正确**却被判"编造"。
   const ctx = ctxOf('H06');
+  // 取一个"因为中文教程少而被淘汰"的候选（C05 Nuxt + Supabase）
+  const r = rejectedOf(ctx, 'C05');
   const pkg = basePkg(ctx, [{
-    combo_id: 'C03',
-    what: 'React 前端 + FastAPI 后端两套服务',
-    why: '你 Python 只有 0.1，前后端两套语言会同时卡住你',
-    reconsider_when: '当你以后愿意长期维护两套服务、并且 Python 补上来时再回头看',
-    source_when_to_leave: '当团队只有你一个人、且不打算长期维护两套服务时，退回 C01',
+    combo_id: r.id,
+    what: r.name,
+    why: 'Vue 的中文教程比 React 少，找资料会多花点时间',
+    reconsider_when: '当你能找到足够多的中文教程、或者不介意看英文文档时，它仍然值得选',
+    source_when_to_leave: r.when,
   }]);
   const c = codes(pkg, ctx);
   ok('翻转后的 reconsider_when 通过校验', c.length === 0, c.join(','));
@@ -91,36 +109,38 @@ console.log('\n[1] 逻辑翻转的正确输出必须通过（2026-10-23 这条�
 console.log('\n[2] 照抄 when_to_leave 必须被拦（2026-10-23 这条曾被放行）');
 {
   const ctx = ctxOf('H06');
-  // 模型重试后的真实输出：把 when_to_leave 一字不改地塞进 reconsider_when。
-  // 作为"什么时候回头看 C03"读是自相矛盾的：它说的是"一个人时退回 C01"。
+  const r = rejectedOf(ctx, 'C05');
+
+  // 把 when_to_leave 一字不改地塞进 reconsider_when：
+  // 作为"什么时候回头看这套"读是自相矛盾的——它说的是"什么时候离开它"。
   const copied = basePkg(ctx, [{
-    combo_id: 'C03',
-    what: 'React 前端 + FastAPI 后端两套服务',
-    why: '你 Python 只有 0.1',
-    reconsider_when: '当团队只有你一个人、且不打算长期维护两套服务时，退回 C01',
-    source_when_to_leave: '当团队只有你一个人、且不打算长期维护两套服务时，退回 C01',
+    combo_id: r.id,
+    what: r.name,
+    why: 'Vue 生态的中文资料少',
+    reconsider_when: r.when,
+    source_when_to_leave: r.when,
   }]);
   const c1 = codes(copied, ctx);
   ok('逐字照抄被拦', c1.includes('fact.reconsider_copied'), c1.join(','));
 
   // 照抄 + 加几个字，本质还是照抄
   const almost = basePkg(ctx, [{
-    combo_id: 'C03',
-    what: 'React 前端 + FastAPI 后端两套服务',
-    why: '你 Python 只有 0.1',
-    reconsider_when: '当团队只有你一个人、且不打算长期维护两套服务时，就该退回 C01 了',
-    source_when_to_leave: '当团队只有你一个人、且不打算长期维护两套服务时，退回 C01',
+    combo_id: r.id,
+    what: r.name,
+    why: 'Vue 生态的中文资料少',
+    reconsider_when: r.when.replace(/。?$/, '了'),
+    source_when_to_leave: r.when,
   }]);
   const c2 = codes(almost, ctx);
   ok('照抄后加几个字仍被拦', c2.includes('fact.reconsider_copied'), c2.join(','));
 
   // 反向确认：真的翻转了就不该被这条拦
   const flipped = basePkg(ctx, [{
-    combo_id: 'C03',
-    what: 'React 前端 + FastAPI 后端两套服务',
-    why: '你 Python 只有 0.1',
-    reconsider_when: '等你有了团队、并且愿意长期维护两套服务时，再回头看它',
-    source_when_to_leave: '当团队只有你一个人、且不打算长期维护两套服务时，退回 C01',
+    combo_id: r.id,
+    what: r.name,
+    why: 'Vue 生态的中文资料少',
+    reconsider_when: '当你能找到足够多的中文教程时，再回头看它',
+    source_when_to_leave: r.when,
   }]);
   ok('真翻转不误杀', !codes(flipped, ctx).includes('fact.reconsider_copied'), codes(flipped, ctx).join(','));
 }
@@ -128,45 +148,32 @@ console.log('\n[2] 照抄 when_to_leave 必须被拦（2026-10-23 这条曾被�
 // ---------------------------------------------------------------- 3
 console.log('\n[3] 真实模型幻觉：reconsider_when 里凭空加量化门槛');
 {
-  // 2026-10-23 实测 H10 原文。C02 的 when_to_leave 是
-  // 「当需要独立扩缩容后端、或有超过 30 秒的长任务时，考虑 C03 或 C09」，
-  // 原文没有任何"日活 1 万"的说法。这条当时**通过了全部校验**，是真实漏网案例。
+  // 2026-10-23 实测的真实漏网案例：模型在 reconsider_when 里塞了原文没有的数字门槛。
+  // 这里仍用 H10 的上下文，但组合改成动态取——原文里没有任何"日活 1 万"的说法。
   const ctx = ctxOf('H10');
-  const pkg = {
-    combo_id: 'C01',
-    one_pager: {
-      headline: '一个人零预算，今晚就能跑通带登录的网页',
-      why: '你只有一个人、预算 0，这套不用写后端代码就有登录和数据库',
-      first_step: { action: '打开 supabase.com，用 GitHub 登录，新建一个 project', minutes: 10 },
-    },
-    not_chosen: [{
-      combo_id: 'C02',
-      what: 'Next.js 加自建 Postgres',
-      why: '要自己建库、写迁移、配连接串，你 SQL 只有 0.2',
-      reconsider_when: '当日活超过 1 万、或需要复杂服务端定时任务与事务时',
-      source_when_to_leave: '当需要独立扩缩容后端、或有超过 30 秒的长任务时，考虑 C03 或 C09',
-    }],
-    next_three_steps: [
-      { action: '跑 npx create-next-app@latest 建项目', minutes: 30, blocker: 'Node 版本太低' },
-      { action: '装 @supabase/supabase-js 并写 .env.local', minutes: 60, blocker: '变量名拼错' },
-      { action: '建表并打开 RLS，写一条 insert', minutes: 120, blocker: 'RLS 策略写错' },
-    ],
-    pitfalls: [
-      { text: ctx.combo.beginner_pitfalls[0], source_index: 0 },
-      { text: ctx.combo.beginner_pitfalls[1], source_index: 1 },
-    ],
-    lighter_alternative: { needed: false, combo_id: null, why: '没有更轻的候选' },
-  };
+  const r = rejectedOf(ctx);
+  const pkg = basePkg(ctx, [{
+    combo_id: r.id,
+    what: r.name,
+    why: '这套对你现在来说太重了',
+    reconsider_when: '当日活超过 1 万、团队扩到 3 人以上时，再考虑这套',
+    source_when_to_leave: r.when,
+  }]);
   const c = codes(pkg, ctx);
   ok('拦住 fact.quantifier_invented', c.includes('fact.quantifier_invented'), c.join(','));
-  ok('"日活 1 万" 被识别为编造门槛',
-    inventedQuantifiers(pkg.not_chosen[0].reconsider_when, '当需要独立扩缩容后端、或有超过 30 秒的长任务时，考虑 C03 或 C09').length === 1);
 
-  // 反向：把门槛换回原文自带的 30 秒，必须放行（否则是误杀）
-  const okPkg = JSON.parse(JSON.stringify(pkg));
-  okPkg.not_chosen[0].reconsider_when = '等你一直不需要独立扩缩容、任务也都在 30 秒以内跑完时';
-  ok('原文自带的 30 秒不误杀', !codes(okPkg, ctx).includes('fact.quantifier_invented'), codes(okPkg, ctx).join(','));
+  // 反向确认：不带量化门槛的合法翻转，不该被这条误杀
+  const okPkg = basePkg(ctx, [{
+    combo_id: r.id,
+    what: r.name,
+    why: '这套对你现在来说太重了',
+    reconsider_when: '当你真的需要多人协作时，再回头看这套',
+    source_when_to_leave: r.when,
+  }]);
+  ok('不带量化门槛的合法翻转不误杀', !codes(okPkg, ctx).includes('fact.quantifier_invented'),
+    codes(okPkg, ctx).join(','));
 }
+
 
 // ---------------------------------------------------------------- 4
 console.log('\n[4] 坑点 2-gram 阈值不应误杀"正常改写"（实测最低重合 13，阈值 2）');

@@ -16,12 +16,17 @@
       "constraint_vector": {
         "delivery": "web",
         "team_size": "1",
-        "skills": { "js": 0.2, "python": 0.3, "sql": 0.1, "ops": 0.0 },
+        "ai_workflow": "assisted",
         "timeline_weeks": 4,
         "budget_cny_month": 0,
         "expected_users": 15,
-        "required_capabilities": ["auth", "file"],
-        "compliance": ["personal_data"],
+        "required_capabilities": [
+          "auth",
+          "file"
+        ],
+        "compliance": [
+          "personal_data"
+        ],
         "goal_type": "internal_tool"
       },
       "why_null": {}
@@ -34,12 +39,17 @@
       "constraint_vector": {
         "delivery": "web",
         "team_size": "1",
-        "skills": { "js": 0.2, "python": 0.8, "sql": 0.3, "ops": 0.1 },
+        "ai_workflow": "assisted",
         "timeline_weeks": 8,
         "budget_cny_month": 50,
         "expected_users": 50,
-        "required_capabilities": ["file", "ai"],
-        "compliance": ["personal_data"],
+        "required_capabilities": [
+          "file",
+          "ai"
+        ],
+        "compliance": [
+          "personal_data"
+        ],
         "goal_type": "product"
       },
       "why_null": {}
@@ -52,12 +62,18 @@
       "constraint_vector": {
         "delivery": "web",
         "team_size": "5+",
-        "skills": { "js": 0.8, "python": 0.6, "sql": 0.7, "ops": 0.5 },
+        "ai_workflow": "assisted",
         "timeline_weeks": 12,
         "budget_cny_month": 500,
         "expected_users": 20000,
-        "required_capabilities": ["auth", "payment"],
-        "compliance": ["payment", "personal_data"],
+        "required_capabilities": [
+          "auth",
+          "payment"
+        ],
+        "compliance": [
+          "payment",
+          "personal_data"
+        ],
         "goal_type": "product"
       },
       "why_null": {}
@@ -70,7 +86,7 @@
       "constraint_vector": {
         "delivery": "miniprogram",
         "team_size": "1",
-        "skills": { "js": 0.1, "python": 0.1, "sql": 0.0, "ops": 0.0 },
+        "ai_workflow": "assisted",
         "timeline_weeks": 6,
         "budget_cny_month": 0,
         "expected_users": 10,
@@ -88,11 +104,15 @@
       "constraint_vector": {
         "delivery": "web",
         "team_size": "1",
-        "skills": { "js": 0.7, "python": 0.3, "sql": 0.3, "ops": 0.2 },
+        "ai_workflow": "assisted",
         "timeline_weeks": 8,
         "budget_cny_month": 100,
         "expected_users": 100,
-        "required_capabilities": ["auth", "ai", "file"],
+        "required_capabilities": [
+          "auth",
+          "ai",
+          "file"
+        ],
         "compliance": [],
         "goal_type": "portfolio"
       },
@@ -106,11 +126,13 @@
       "constraint_vector": {
         "delivery": "web",
         "team_size": "1",
-        "skills": { "js": 0.4, "python": 0.2, "sql": 0.1, "ops": 0.0 },
+        "ai_workflow": "assisted",
         "timeline_weeks": 2,
         "budget_cny_month": 0,
         "expected_users": 10,
-        "required_capabilities": ["file"],
+        "required_capabilities": [
+          "file"
+        ],
         "compliance": [],
         "goal_type": "internal_tool"
       },
@@ -124,12 +146,18 @@
       "constraint_vector": {
         "delivery": "web",
         "team_size": "1",
-        "skills": { "js": 0.8, "python": 0.8, "sql": 0.6, "ops": 0.5 },
+        "ai_workflow": "assisted",
         "timeline_weeks": 8,
         "budget_cny_month": 200,
         "expected_users": 500,
-        "required_capabilities": ["auth", "ai", "file"],
-        "compliance": ["personal_data"],
+        "required_capabilities": [
+          "auth",
+          "ai",
+          "file"
+        ],
+        "compliance": [
+          "personal_data"
+        ],
         "goal_type": "product"
       },
       "why_null": {},
@@ -144,11 +172,13 @@
       "constraint_vector": {
         "delivery": "web",
         "team_size": "1",
-        "skills": { "js": 0.5, "python": 0.1, "sql": 0.0, "ops": 0.0 },
+        "ai_workflow": "assisted",
         "timeline_weeks": 2,
         "budget_cny_month": 0,
         "expected_users": 10,
-        "required_capabilities": ["ai"],
+        "required_capabilities": [
+          "ai"
+        ],
         "compliance": [],
         "goal_type": "internal_tool"
       },
@@ -164,7 +194,7 @@
       "constraint_vector": {
         "delivery": "desktop",
         "team_size": "1",
-        "skills": { "js": 0.4, "python": 0.5, "sql": 0.0, "ops": 0.0 },
+        "ai_workflow": "assisted",
         "timeline_weeks": 4,
         "budget_cny_month": 0,
         "expected_users": 5,
@@ -184,7 +214,7 @@
       "constraint_vector": {
         "delivery": null,
         "team_size": "1",
-        "skills": { "js": 0.3, "python": 0.7, "sql": 0.0, "ops": 0.1 },
+        "ai_workflow": "assisted",
         "timeline_weeks": 2,
         "budget_cny_month": 0,
         "expected_users": 3,
@@ -206,7 +236,7 @@
       "constraint_vector": {
         "delivery": "web",
         "team_size": null,
-        "skills": { "js": 0.5 },
+        "ai_workflow": "assisted",
         "timeline_weeks": null,
         "budget_cny_month": null,
         "expected_users": null,

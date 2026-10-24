@@ -192,7 +192,7 @@ const H06_RAW_INPUT =
 const VEC_MEDIUM: ConstraintVector = {
   delivery: 'web',
   team_size: '1',
-  skills: { js: 0.8, python: 0.1, sql: 0.4, ops: 0.3 },
+  ai_workflow: 'assisted',
   timeline_weeks: null,
   budget_cny_month: null,
   expected_users: null,
@@ -209,11 +209,11 @@ const VEC_HIGH: ConstraintVector = {
   expected_users: 200,
 } as ConstraintVector;
 
-/** 只给 2 个字段 → 核心组缺 skills / required_capabilities + 补充组全空 → low，直接阻断 */
+/** 只给 2 个字段 → 核心组缺 ai_workflow / required_capabilities + 补充组全空 → low，直接阻断 */
 const VEC_LOW: ConstraintVector = {
   delivery: 'web',
   team_size: '1',
-  skills: null,
+  ai_workflow: null,
   timeline_weeks: null,
   budget_cny_month: null,
   expected_users: null,

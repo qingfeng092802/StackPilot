@@ -6,7 +6,7 @@
  *   解析层校验不过 → 退回"什么都没解析出来"（宁可问用户，也不能带着猜的值往下走）。
  *
  * 因为解析层一旦带着猜的值往下走，错误会**贯穿整条链路**：
- * 猜了 skills.js=0.6 → 引擎据此选一套 JS 方案 → 解释层再把它说得头头是道。
+ * 猜了 ai_workflow=assisted → 引擎按"AI 写我改"的权重选型 → 解释层再把它说得头头是道。
  * 后面两道闸都拦不住，因为它们校验的是"有没有编事实"，不是"前提对不对"。
  */
 
@@ -26,18 +26,15 @@ export type { DroppedField, IntakeParse } from './validate.ts';
 export interface IntakeOption {
   value: string;
   label: string;
-  /** 仅 skills.level 用：该程度对应的 0–1 数值。由服务端给出，前端不自己算 */
+  /** 遗留字段：v1.7.0 起没有"程度→数值"的映射了，保留是为了不破坏前端旧代码 */
   score?: number;
 }
 
 export interface IntakeQuestion {
   field: string;
   question: string;
-  type: 'select' | 'multi' | 'skills' | 'number';
+  type: 'select' | 'multi' | 'number';
   options?: IntakeOption[];
-  /** skills 专用：可选语言与可选程度 */
-  langs?: IntakeOption[];
-  levels?: IntakeOption[];
   hint?: string;
   unit?: string;
 }
@@ -74,7 +71,7 @@ export interface IntakeResult {
  * 追问优先级：越靠前对 Top1 影响越大。
  *
  * 【和 confidence.ts 的 ASK_PRIORITY 有一处刻意不同】
- * 那边是 skills → goal_type → team_size → delivery，
+ * 那边是 ai_workflow → goal_type → team_size → delivery，
  * 这边把 delivery 提到了第二位。原因：那套顺序服务于"低置信度时提示补哪几项"，
  * 提示是给人看的清单；这里服务于"只能问 2–3 个问题"，
  * 而 delivery 缺失意味着**整个候选池未知**（网页 / 小程序 / 桌面是三套不同的组合），
@@ -82,7 +79,7 @@ export interface IntakeResult {
  * 所以它进 missing 时，往往是真的没说——那就必须问。
  */
 const ASK_ORDER = [
-  'skills',
+  'ai_workflow',
   'delivery',
   'goal_type',
   'team_size',
@@ -97,25 +94,15 @@ const ASK_ORDER = [
 const MAX_QUESTIONS = 3;
 
 const QUESTIONS: Record<string, IntakeQuestion> = {
-  skills: {
-    field: 'skills',
-    question: '你最熟的语言是哪个？到什么程度？',
-    type: 'skills',
-    hint: '这个决定走 JS 还是 Python 路线，是选型里影响最大的一项',
-    langs: [
-      { value: 'js', label: 'JavaScript / TypeScript' },
-      { value: 'python', label: 'Python' },
-      { value: 'java', label: 'Java' },
-      { value: 'go', label: 'Go' },
-      { value: 'rust', label: 'Rust' },
-      { value: '*', label: '完全不会写代码' },
-    ],
-    levels: [
-      { value: 'none', label: '完全不会', score: 0 },
-      { value: 'beginner', label: '会一点，能改别人的代码', score: 0.3 },
-      { value: 'basic', label: '能独立写小功能', score: 0.5 },
-      { value: 'proficient', label: '熟练，做过完整项目', score: 0.7 },
-      { value: 'expert', label: '精通', score: 0.9 },
+  ai_workflow: {
+    field: 'ai_workflow',
+    question: '这个项目，你打算让 AI 写多少？',
+    type: 'select',
+    hint: '这决定了我们给你挑"AI 最容易一次写对"的方案，还是"最适合学"的方案',
+    options: [
+      { value: 'full_auto', label: '我基本不写代码，全让 AI 写' },
+      { value: 'assisted', label: 'AI 写，我来改和调' },
+      { value: 'learning', label: '我自己写为主，想借这个项目学' },
     ],
   },
   delivery: {

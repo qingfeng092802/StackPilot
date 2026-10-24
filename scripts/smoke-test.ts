@@ -30,27 +30,27 @@ console.log('\n=== 2. 同一需求 + 不同约束 → 是否真的不同 ===');
 const scenarios = [
   {
     label: '新手 / 1人 / 1月 / 0预算 / 要登录',
-    v: { delivery: 'web', team_size: '1', skills: { js: 0.2, python: 0.2, sql: 0.1 }, timeline_weeks: 4, budget_cny_month: 0, expected_users: 100, required_capabilities: ['auth'], goal_type: 'internal_tool' },
+    v: { delivery: 'web', team_size: '1', ai_workflow: 'assisted', timeline_weeks: 4, budget_cny_month: 0, expected_users: 100, required_capabilities: ['auth'], goal_type: 'internal_tool' },
   },
   {
     label: '会 Python / 1人 / 2月 / 要 AI',
-    v: { delivery: 'web', team_size: '1', skills: { js: 0.2, python: 0.8, sql: 0.3 }, timeline_weeks: 8, budget_cny_month: 50, expected_users: 500, required_capabilities: ['ai', 'file'], goal_type: 'product' },
+    v: { delivery: 'web', team_size: '1', ai_workflow: 'assisted', timeline_weeks: 8, budget_cny_month: 50, expected_users: 500, required_capabilities: ['ai', 'file'], goal_type: 'product' },
   },
   {
     label: '5人团队 / 长期产品 / 要支付',
-    v: { delivery: 'web', team_size: '5+', skills: { js: 0.8, python: 0.6, sql: 0.7 }, timeline_weeks: 12, budget_cny_month: 500, expected_users: 20000, required_capabilities: ['auth', 'payment'], compliance: ['payment'], goal_type: 'product' },
+    v: { delivery: 'web', team_size: '5+', ai_workflow: 'assisted', timeline_weeks: 12, budget_cny_month: 500, expected_users: 20000, required_capabilities: ['auth', 'payment'], compliance: ['payment'], goal_type: 'product' },
   },
   {
     label: '小程序 / 个人主体 / 零预算',
-    v: { delivery: 'miniprogram', team_size: '1', skills: { js: 0.3, python: 0.1, sql: 0.1 }, timeline_weeks: 6, budget_cny_month: 0, expected_users: 200, required_capabilities: [], goal_type: 'internal_tool' },
+    v: { delivery: 'miniprogram', team_size: '1', ai_workflow: 'assisted', timeline_weeks: 6, budget_cny_month: 0, expected_users: 200, required_capabilities: [], goal_type: 'internal_tool' },
   },
   {
     label: '作品集 / 要 AI / 会 JS',
-    v: { delivery: 'web', team_size: '1', skills: { js: 0.7, python: 0.3, sql: 0.3 }, timeline_weeks: 8, budget_cny_month: 100, expected_users: 100, required_capabilities: ['ai', 'auth'], goal_type: 'portfolio' },
+    v: { delivery: 'web', team_size: '1', ai_workflow: 'assisted', timeline_weeks: 8, budget_cny_month: 100, expected_users: 100, required_capabilities: ['ai', 'auth'], goal_type: 'portfolio' },
   },
   {
     label: '内部工具 / 2周 / 极简',
-    v: { delivery: 'web', team_size: '1', skills: { js: 0.4, python: 0.2, sql: 0.1 }, timeline_weeks: 2, budget_cny_month: 0, expected_users: 10, required_capabilities: [], goal_type: 'internal_tool' },
+    v: { delivery: 'web', team_size: '1', ai_workflow: 'assisted', timeline_weeks: 2, budget_cny_month: 0, expected_users: 10, required_capabilities: [], goal_type: 'internal_tool' },
   },
 ];
 
@@ -74,7 +74,6 @@ for (const s of scenarios) {
   if (r.runnerUps.length) {
     console.log(`    差一点入选: ${r.runnerUps.map((x) => `${x.id}(${x.score})`).join(' ')}`);
   }
-  if (r.skillMismatch) console.log(`    ⚠️ 技能栈违背：用户最强语言与 Top1 不一致`);
   console.log(`    过滤掉 ${r.filteredOut.length} 套，剩 ${r.candidateCount} 套候选`);
   if (r.filteredOut.length) console.log(`    例: ${r.filteredOut[0].id} — ${r.filteredOut[0].reasons[0]}`);
 }

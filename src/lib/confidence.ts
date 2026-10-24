@@ -24,7 +24,7 @@
  *      零数据库方案（C11）在真实需求上通吃。缺陷在表达力，不在打分算法。
  *      【v1.5.0】推断结果已降级为**建议项**：只参与 fit，不再硬排除 C11/C12。
  *      见 combos.json 的 capability_note（真人访谈认为 MVP 用 LocalStorage 就够）。
- *   c) delivery 枚举补 cli / selfhost，skills 补 go / rust / java（类型在 scoring.ts）。
+ *   c) delivery 枚举补 cli / selfhost。（v1.7.0：skills 与 go/rust/java 一并移除）
  */
 import type { ConstraintVector, Capability } from './scoring.ts';
 
@@ -111,7 +111,7 @@ export type Confidence = 'high' | 'medium' | 'low';
 export const SCORED_FIELDS = [
   'delivery',
   'team_size',
-  'skills',
+  'ai_workflow',
   'timeline_weeks',
   'budget_cny_month',
   'expected_users',
@@ -126,16 +126,14 @@ export type ScoredField = (typeof SCORED_FIELDS)[number];
  * 核心语义组：缺了它，选型就没有主心骨。
  *
  *   delivery              —— 决定整个组合池（web / 小程序 / 桌面）
- *   skills                —— 决定语言路线（js 派 / py 派）
+ *   ai_workflow           —— 决定权重档（full_auto / assisted / learning），v1.7.0 取代 skills
  *   required_capabilities —— 决定要不要后端、要不要 AI、要不要持久化
  *
- * 【与规格文字的一处偏离，见汇报「剩下的坑」第 1 条】
- * 规格把 skills 归入补充组，但 HX1（3/9 字段）唯一的 low 判定依赖 skills 缺失。
- * 把 skills 移到补充组后，HX1 的核心组就是完整的，会掉到 medium 并真的出方案——
- * 这与"3/9 的帖子必须被拦住"相反。所以 skills 留在核心组。
- * 规格提到的 `core_operation` 在当前 schema 里不存在，跳过。
+ * 【v1.7.0】`skills` 换成 `ai_workflow`，**仍然留在核心组**。
+ * 理由没变：核心组缺一项就足以让选型没有主心骨，而"谁写代码"现在是决定权重的那一项。
+ * HX1（3/9 字段）的 low 判定也因此继续成立。
  */
-export const CORE_FIELDS: ScoredField[] = ['delivery', 'skills', 'required_capabilities'];
+export const CORE_FIELDS: ScoredField[] = ['delivery', 'ai_workflow', 'required_capabilities'];
 
 /** 补充组：缺了会让结果变糙，但不会让方向跑偏 */
 export const SUPPLEMENTARY_FIELDS: ScoredField[] = SCORED_FIELDS.filter(
@@ -157,7 +155,7 @@ const SUPP_NEARLY_EMPTY = 5;
  *
  * 【与规格文字的第三处偏离，见汇报「剩下的坑」第 3 条】
  * 规格的 medium 条件带着"核心组缺 1 个"这个前提。但 H04 / H05 / H06 的核心组
- * （delivery + skills + required_capabilities）**全部完整**，缺的是 timeline /
+ * （delivery + ai_workflow + required_capabilities）**全部完整**，缺的是 timeline /
  * expected_users / budget——按字面规则它们仍然是 high，验收目标无法达成。
  * 所以 medium 条件放宽为"核心组缺 1 个 **或** 补充组缺 ≥2 个"。
  */
@@ -165,7 +163,7 @@ const SUPP_ENOUGH_TO_WARN = 2;
 
 /** 追问优先级：越靠前，对 Top1 的影响越大 */
 const ASK_PRIORITY: ScoredField[] = [
-  'skills',
+  'ai_workflow',
   'goal_type',
   'team_size',
   'delivery',
@@ -179,7 +177,7 @@ const ASK_PRIORITY: ScoredField[] = [
 export const FIELD_QUESTIONS: Record<ScoredField, string> = {
   delivery: '你要交付成什么形态？（网页 / 微信小程序 / 桌面客户端 / 命令行工具 / 浏览器插件）',
   team_size: '这个项目几个人做？只有你一个，还是有小团队？',
-  skills: '你最熟的编程语言是什么、到什么程度？完全不会也可以直说。',
+  ai_workflow: '这个项目你打算怎么让 AI 参与？全自动生成，还是你也会改代码？',
   timeline_weeks: '希望多久能用上？',
   budget_cny_month: '每月能接受多少服务器/服务成本？0 也可以说。',
   expected_users: '预计多少人用？',

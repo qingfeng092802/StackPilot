@@ -104,7 +104,6 @@ for (const c of cases.cases) {
   // 只有真实需求用例进入差异度/违背率/强制率的分母
   if (!isProbe) {
     signatures.push(sig);
-    if (r.skillMismatch) mismatch++;
     if (r.diversityEnforced) enforced++;
   }
 
@@ -142,7 +141,6 @@ for (const c of cases.cases) {
         shown: notChosenForUI(r).length,
       },
       diversity_enforced: r.diversityEnforced,
-      skill_mismatch: r.skillMismatch,
       candidate_count: r.candidateCount,
     },
     facts_snapshot: factsFor(c1),
@@ -151,7 +149,7 @@ for (const c of cases.cases) {
   writeFileSync(new URL(`${c.id}.json`, OUT), JSON.stringify(payload, null, 2));
 
   console.log(
-    `${c.id.padEnd(6)} ${(r.top1.id + ' ' + r.top1.name).slice(0, 32).padEnd(33)} ${(r.top2.id + ' ' + r.top2.name).slice(0, 32).padEnd(33)} ${String(r.top1.score).padEnd(4)} ${String(r.candidateCount).padEnd(4)} ${r.skillMismatch ? '  ⚠️' : '  ·'}  ${r.diversityEnforced ? '是' : '否'}`
+    `${c.id.padEnd(6)} ${(r.top1.id + ' ' + r.top1.name).slice(0, 32).padEnd(33)} ${(r.top2.id + ' ' + r.top2.name).slice(0, 32).padEnd(33)} ${String(r.top1.score).padEnd(4)} ${String(r.candidateCount).padEnd(4)}  ${r.diversityEnforced ? '是' : '否'}`
   );
 }
 

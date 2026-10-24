@@ -190,7 +190,7 @@ function groupNotChosen(
 const FIELD_CN: Record<string, string> = {
   delivery: '交付形态',
   team_size: '团队规模',
-  skills: '语言基础',
+  ai_workflow: 'AI 参与方式',
   timeline_weeks: '上线时间',
   budget_cny_month: '预算',
   expected_users: '预计用户量',
@@ -200,7 +200,7 @@ const FIELD_CN: Record<string, string> = {
 };
 
 function localizeFields(text: string): string {
-  return text.replace(/\b(delivery|team_size|skills|timeline_weeks|budget_cny_month|expected_users|required_capabilities|compliance|goal_type)\b/g,
+  return text.replace(/\b(delivery|team_size|ai_workflow|timeline_weeks|budget_cny_month|expected_users|required_capabilities|compliance|goal_type)\b/g,
     (m) => FIELD_CN[m] ?? m);
 }
 

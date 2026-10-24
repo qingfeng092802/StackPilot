@@ -46,7 +46,10 @@ const FIELDS = {
     label: '团队规模', type: 'select',
     options: [['1', '只有我'], ['2-3', '2–3 人'], ['5+', '5 人以上']],
   },
-  skills: { label: '语言基础（0–1）', type: 'skills' },
+  ai_workflow: {
+    label: 'AI 参与方式', type: 'select',
+    options: [['full_auto', '全让 AI 写'], ['assisted', 'AI 写我来改'], ['learning', '自己写为主']],
+  },
   timeline_weeks: { label: '多久上线（周）', type: 'number' },
   budget_cny_month: { label: '每月预算（元）', type: 'number' },
   expected_users: { label: '预计用户数', type: 'number' },
@@ -64,6 +67,13 @@ const FIELDS = {
   },
 };
 
+/**
+ * 【v1.7.0 遗留】skills 字段已废弃，改成 ai_workflow（单个下拉）。
+ * 这个数组和下面所有 `def.type === 'skills'` 的分支都成了**死代码**——
+ * 因为 FIELDS 里不再有 type:'skills' 的字段，服务端也不再下发 type:'skills' 的追问。
+ * 故意留着不删：删它们要动 7 处渲染分支，而 web/ 只是调试台（MCP 才是主入口），
+ * 改坏它的代价比留着大。真要大扫除时一起删。
+ */
 const SKILL_KEYS = [['js', 'JS'], ['python', 'Py'], ['sql', 'SQL'], ['ops', '运维'], ['go', 'Go'], ['rust', 'Rust'], ['java', 'Java']];
 
 /** 字段名中文化。视图层已有同名映射，但那是服务端给警告条用的，这里要单独一份：
@@ -71,7 +81,7 @@ const SKILL_KEYS = [['js', 'JS'], ['python', 'Py'], ['sql', 'SQL'], ['ops', '运
 const FIELD_CN = {
   delivery: '交付形态',
   team_size: '团队规模',
-  skills: '语言基础',
+  ai_workflow: 'AI 参与方式',
   timeline_weeks: '上线时间',
   budget_cny_month: '每月预算',
   expected_users: '用户量',
@@ -85,7 +95,7 @@ const PREFILL = {
   raw_input: '上班路上爱听广播，但经常听一半就到公司了；干活时也想听点新鲜的。我想做个网页：打开按一下就随机掉进世界上某个城市的电台，同一个浏览器下次打开能接着上次听；按「下一站」随机换台，能只听高码率；能读到曲名的直接显示，读不到的点一下就识别；收藏的歌能跳到音乐 App 去搜。星图按流派铺开可以拖着逛，也有地球视图。不要账号、不要广告，收藏只存浏览器里。',
   vector: {
     delivery: 'web', team_size: '1',
-    skills: { js: 0.8, python: 0.1, sql: 0.4, ops: 0.3 },
+    ai_workflow: 'assisted',
     timeline_weeks: null, budget_cny_month: null, expected_users: null,
     required_capabilities: [], compliance: [], goal_type: 'product',
   },
@@ -112,8 +122,8 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 
 /** 把枚举值翻成中文，用于"我读到了什么" */
 function labelOf(field, value) {
-  if (field === 'skills') {
-    return Object.entries(value ?? {}).map(([k, s]) => `${SKILL_KEYS.find(([id]) => id === k)?.[1] ?? k} ${s}`).join('、');
+  if (field === 'ai_workflow') {
+    return { full_auto: '全让 AI 写', assisted: 'AI 写我来改', learning: '自己写为主' }[value] ?? String(value);
   }
   if (field === 'timeline_weeks') return `${value} 周`;
   if (field === 'budget_cny_month') return `¥${value}/月`;

@@ -37,7 +37,7 @@ const CASES: { id: string; text: string; note: string }[] = [
   },
   {
     id: 'E',
-    note: '内部工具 + 明确人数 + 明确预算，看它会不会自己补 skills',
+    note: '内部工具 + 明确人数 + 明确预算，看它会不会自己补 ai_workflow',
     text: '想给公司内部做个查资料的网页，就我们组三个人用，不要账号，预算每月 100 块',
   },
 ];

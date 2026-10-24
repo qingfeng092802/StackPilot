@@ -7,7 +7,7 @@
  *
  * 为什么不能靠"跑一遍真实模型看结果对不对"：
  *   temperature=0.2 下模型有时老实、有时手痒。今天它老实，明天它填个
- *   skills.js=0.6，两次都"看起来合理"，肉眼根本分不出哪个是编的。
+ *   ai_workflow=assisted，两次都"看起来合理"，肉眼根本分不出哪个是编的。
  *   所以这里用**桩 provider** 精确复现"模型手痒的每一种姿势"，
  *   断言代码层一定把它丢掉，并且丢掉的原因能被说清楚。
  *
@@ -142,51 +142,57 @@ group('三、capabilities=[] 只能来自"明确说不要"，不能来自沉默'
 }
 
 // ────────────────────────────────────────────────────────────
-// 四、skills：最容易"给个合理值"的字段
+// 四、ai_workflow：判的是"谁写代码"，不是"会不会写代码"
 // ────────────────────────────────────────────────────────────
 
-group('四、skills 不许猜（用户没说语言/程度就不给数值）');
+group('四、ai_workflow 只认分工，不认水平');
 
 {
-  // 用户只说"会一点代码"，模型自作主张填了 js
-  const raw = '我会一点代码';
-  const p1 = parseIntake(raw, {
-    skills: [{ lang: 'js', level: 'beginner', evidence: '我会一点代码' }],
+  // ① 明确的"让 AI 写" → full_auto
+  const p1 = parseIntake('我不会写代码，只想用 Cursor 自然语言让 AI 帮我写', {
+    ai_workflow: { value: 'full_auto', evidence: '用 Cursor 自然语言让 AI 帮我写' },
   });
-  ok('「会一点代码」填成 skills.js=0.3 → 丢（没说语言）',
-    p1.vector.skills === undefined, JSON.stringify(p1.dropped));
+  ok('「让 AI 帮我写」→ full_auto 被采纳',
+    p1.vector.ai_workflow === 'full_auto', JSON.stringify(p1.vector.ai_workflow));
 
-  // 用户说了语言但没说程度
-  const p2 = parseIntake('我会 Python', {
-    skills: [{ lang: 'python', level: 'basic', evidence: '我会 Python' }],
+  // ② 水平描述 ≠ 分工。这是本次重构最容易读错的一条。
+  const p2 = parseIntake('我技术一般', {
+    ai_workflow: { value: 'assisted', evidence: '我技术一般' },
   });
-  ok('「我会 Python」填成 level=basic → 丢（没说程度，不该给 0.5）',
-    p2.vector.skills === undefined, JSON.stringify(p2.dropped));
+  ok('「我技术一般」被填成 assisted → 丢（水平不是分工）',
+    p2.vector.ai_workflow === undefined, JSON.stringify(p2.dropped));
 
-  // 都说了
-  const p3 = parseIntake('我会一点 Python', {
-    skills: [{ lang: 'python', level: 'beginner', evidence: '我会一点 Python' }],
+  // ③ evidence 里根本没有分工表述，却给了值 → 丢
+  const p3 = parseIntake('想做个记账网页', {
+    ai_workflow: { value: 'full_auto', evidence: '想做个记账网页' },
   });
-  ok('「会一点 Python」→ 采纳，python=0.3（数值由代码查表，不是模型给的）',
-    p3.vector.skills?.python === 0.3, JSON.stringify(p3.vector.skills));
+  ok('evidence 读不出分工 → 丢',
+    p3.vector.ai_workflow === undefined, JSON.stringify(p3.dropped));
 
-  // "*" 只在 none 时合法
-  const p4 = parseIntake('我完全不会写代码', {
-    skills: [{ lang: '*', level: 'none', evidence: '我完全不会写代码' }],
+  // ④ 值不在枚举里 → 丢
+  const p4 = parseIntake('让 AI 帮我写', {
+    ai_workflow: { value: 'vibe', evidence: '让 AI 帮我写' },
   });
-  ok('「完全不会写代码」→ 全部语言 0 分（这是"不会"的完整编码，不是猜）',
-    p4.vector.skills?.js === 0 && p4.vector.skills?.python === 0 && p4.vector.skills?.ops === 0);
+  ok('取值 vibe 不在枚举里 → 丢', p4.vector.ai_workflow === undefined);
 
-  const p5 = parseIntake('我完全不会写代码', {
-    skills: [{ lang: '*', level: 'beginner', evidence: '我完全不会写代码' }],
+  // ⑤ evidence 不是原文的连续片段 → 丢
+  const p5 = parseIntake('让 AI 帮我写个网页', {
+    ai_workflow: { value: 'full_auto', evidence: '全部自动生成所有代码' },
   });
-  ok('"*" 配 level=beginner → 丢（自相矛盾）', p5.vector.skills === undefined);
+  ok('evidence 不是原文片段 → 丢', p5.vector.ai_workflow === undefined);
 
-  // evidence 提到语言但程度词对不上
-  const p6 = parseIntake('我会一点 Python', {
-    skills: [{ lang: 'python', level: 'expert', evidence: '我会一点 Python' }],
+  // ⑥ assisted / learning 也要能正确识别
+  const p6 = parseIntake('AI 写完我会改一遍再上线', {
+    ai_workflow: { value: 'assisted', evidence: 'AI 写完我会改' },
   });
-  ok('「会一点」被填成 expert → 丢', p6.vector.skills === undefined);
+  ok('「AI 写完我会改」→ assisted', p6.vector.ai_workflow === 'assisted',
+    JSON.stringify(p6.vector.ai_workflow));
+
+  const p7 = parseIntake('想自己动手写，借这个项目学 React', {
+    ai_workflow: { value: 'learning', evidence: '借这个项目学 React' },
+  });
+  ok('「借这个项目学」→ learning', p7.vector.ai_workflow === 'learning',
+    JSON.stringify(p7.vector.ai_workflow));
 }
 
 // ────────────────────────────────────────────────────────────
@@ -242,7 +248,7 @@ group('六、intake() 全流程：缺失字段 → 追问');
 const GOOD_JSON = JSON.stringify({
   delivery: { value: 'miniprogram', evidence: '做个帮人记账的小程序' },
   team_size: null,
-  skills: [{ lang: 'python', level: 'beginner', evidence: '我会一点 Python' }],
+  ai_workflow: { value: 'full_auto', evidence: '让 AI 帮我写' },
   timeline: null,
   budget: null,
   expected_users: { amount: 10, evidence: '大概 10 个人用' },
@@ -256,17 +262,17 @@ const GOOD_JSON = JSON.stringify({
 // 所以异步断言全部收进 main()，同步断言留在外面。
 async function main() {
   const r = await intake({
-    raw_input: '我想做个帮人记账的小程序，大概 10 个人用，我会一点 Python',
+    raw_input: '我想做个帮人记账的小程序，大概 10 个人用，让 AI 帮我写',
     provider: stub([{ text: GOOD_JSON }]),
   });
   ok('ok=true', r.ok === true);
-  ok('采纳 delivery / skills / expected_users',
-    r.parsed.delivery === 'miniprogram' && r.parsed.skills?.python === 0.3 && r.parsed.expected_users === 10);
+  ok('采纳 delivery / ai_workflow / expected_users',
+    r.parsed.delivery === 'miniprogram' && r.parsed.ai_workflow === 'full_auto' && r.parsed.expected_users === 10);
   ok('没说的字段全进 missing（timeline/budget/team_size 等）',
     ['team_size', 'timeline_weeks', 'budget_cny_month', 'required_capabilities', 'compliance', 'goal_type']
       .every((f) => r.missing.includes(f)), JSON.stringify(r.missing));
   ok('追问不超过 3 个', r.questions.length <= 3, `${r.questions.length}`);
-  ok('追问按优先级：skills 已有值，所以第一个问的是 delivery 或 goal_type',
+  ok('追问按优先级：ai_workflow 已有值，所以第一个问的是 delivery 或 goal_type',
     r.questions[0].field === 'delivery' || r.questions[0].field === 'goal_type',
     r.questions.map((q) => q.field).join(','));
   ok('每个追问都带可渲染的控件定义', r.questions.every((q) => q.type && q.question));
@@ -277,7 +283,7 @@ async function main() {
   const FULL = JSON.stringify({
     delivery: { value: 'web', evidence: '做个网页' },
     team_size: { value: '1', evidence: '就我自己' },
-    skills: [{ lang: 'js', level: 'proficient', evidence: '我 JS 比较熟' }],
+    ai_workflow: { value: 'learning', evidence: '我想自己动手写' },
     timeline: { amount: 2, unit: 'month', evidence: '两个月内上线' },
     budget: { amount: 0, unit: 'month', evidence: '预算 0' },
     expected_users: { amount: 50, evidence: '50 个人用' },
@@ -286,7 +292,7 @@ async function main() {
     goal_type: { value: 'product', evidence: '对外做产品' },
   });
   const r2 = await intake({
-    raw_input: '做个网页，就我自己，我 JS 比较熟，两个月内上线，预算 0，50 个人用，不要账号，不涉及隐私，对外做产品',
+    raw_input: '做个网页，就我自己，我想自己动手写，两个月内上线，预算 0，50 个人用，不要账号，不涉及隐私，对外做产品',
     provider: stub([{ text: FULL }]),
   });
   ok('信息齐全 → high 且一个问题都不问（再问就是打扰）',
@@ -314,7 +320,7 @@ async function main() {
   group('八、重试：第一次不合法，第二次合法 → 只重试一次就成功');
 
   const rt = await intake({
-    raw_input: '我想做个帮人记账的小程序，大概 10 个人用，我会一点 Python',
+    raw_input: '我想做个帮人记账的小程序，大概 10 个人用，让 AI 帮我写',
     provider: stub([{ text: '这是你要的：{坏了' }, { text: GOOD_JSON }]),
   });
   ok('第一次坏 JSON、第二次好 JSON → ok=true', rt.ok === true);
@@ -326,7 +332,7 @@ async function main() {
     provider: stub([{
       text: JSON.stringify({
         delivery: { value: 'web', evidence: '想做个工具' },
-        skills: [{ lang: 'js', level: 'beginner', evidence: '我会一点代码' }],
+        ai_workflow: { value: 'assisted', evidence: '我会一点代码' },
       }),
     }]),
   });

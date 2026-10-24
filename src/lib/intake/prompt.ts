@@ -3,7 +3,7 @@
  *
  * 这一层的失败模式和解解释层不一样：
  *   解释层怕的是"编事实"（编一个不存在的坑）；
- *   解析层怕的是"补需求"（用户说"我会一点代码"，它填 skills.js=0.6）。
+ *   解析层怕的是"补需求"（用户说"我会一点代码"，它填 ai_workflow=assisted）。
  *
  * 后者更隐蔽——补出来的值看起来总是合理的，用户也不会反驳，
  * 但整个选型就建立在一个模型自己编的前提上。所以这一层的核心约束不是"写得准"，
@@ -26,8 +26,16 @@ export const CAPABILITY_VALUES = [
   'no_persistence',
 ] as const;
 export const COMPLIANCE_VALUES = ['personal_data', 'payment'] as const;
-export const SKILL_LANGS = ['js', 'python', 'sql', 'ops', 'go', 'rust', 'java'] as const;
-export const SKILL_LEVELS = ['none', 'beginner', 'basic', 'proficient', 'expert'] as const;
+/**
+ * 【v1.7.0】取代 skills.lang / skills.level。
+ * 只问"谁写代码"，不问"会什么语言"——目标用户是用 Cursor/Agent 写代码的人。
+ */
+export const AI_WORKFLOW_VALUES = ['full_auto', 'assisted', 'learning'] as const;
+export const AI_WORKFLOW_LABELS: Record<string, string> = {
+  full_auto: '我基本不写，全让 AI 写',
+  assisted: 'AI 写，我来改',
+  learning: '我自己写为主，想借这个学',
+};
 export const TIME_UNITS = ['day', 'week', 'month'] as const;
 
 export const INTAKE_SYSTEM_PROMPT = `你是一个需求解析器，不是需求补全器。
@@ -45,8 +53,8 @@ export const INTAKE_SYSTEM_PROMPT = `你是一个需求解析器，不是需求�
 
 3. 下面是典型错误，你必须避免：
 
-   ✗ 用户说「我会一点代码」→ 你输出 skills: [{lang:"js", level:"beginner"}]
-     错在哪：他既没说语言，也没说程度。skills 必须是 []，交给系统去问。
+   ✗ 用户说「我技术一般」→ 你输出 ai_workflow: "assisted"
+     错在哪："技术一般"说的是水平，不是"谁写代码"。ai_workflow 必须是 null。
 
    ✗ 用户说「做个工具给同事用」→ 你输出 delivery: "web"
      错在哪：工具可能是网页、可能是桌面、可能是命令行。delivery 必须是 null。
@@ -95,8 +103,12 @@ team_size: ${TEAM_SIZE_VALUES.join(' | ')}
 goal_type: ${GOAL_VALUES.join(' | ')}
 capabilities: ${CAPABILITY_VALUES.join(' | ')}
 compliance: ${COMPLIANCE_VALUES.join(' | ')}
-skills.lang: ${SKILL_LANGS.join(' | ')}（另有 "*" 仅当用户明确说"完全不会写代码"时用，此时 level 必须是 none）
-skills.level: ${SKILL_LEVELS.join(' | ')}（none=完全不会, beginner=会一点, basic=能独立写小功能, proficient=熟练, expert=精通）
+ai_workflow: ${AI_WORKFLOW_VALUES.join(' | ')}（full_auto=我基本不写全让 AI 写, assisted=AI 写我来改, learning=我自己写为主想借这个学）
+  判定口径：**问的是"谁写代码"，不是"会不会写代码"**。
+  「我用 Cursor 写」「让 AI 帮我写」「我不写代码」→ full_auto
+  「AI 写完我会改」「我会看它写的代码」→ assisted
+  「想借这个项目学 React」「主要自己写」→ learning
+  只说"技术一般 / 不太懂"这种**水平描述** → null（那是水平，不是分工）
 timeline.unit: day | week | month
 budget.unit: month | year
 
@@ -105,7 +117,7 @@ budget.unit: month | year
 {
   "delivery":      { "value": "web", "evidence": "原文里的连续片段" } 或 null,
   "team_size":     { "value": "1", "evidence": "…" } 或 null,
-  "skills":        [ { "lang": "python", "level": "beginner", "evidence": "…" } ],
+  "ai_workflow":   { "value": "full_auto", "evidence": "…" } 或 null,
   "timeline":      { "amount": 1, "unit": "month", "evidence": "…" } 或 null,
   "budget":        { "amount": 100, "unit": "month", "evidence": "…" } 或 null,
   "expected_users":{ "amount": 10, "evidence": "…" } 或 null,
@@ -114,14 +126,14 @@ budget.unit: month | year
   "goal_type":     { "value": "product", "evidence": "…" } 或 null
 }
 
-### 三个示范
+### 四个示范
 
 输入：「我想做个帮人记账的小程序，大概 10 个人用，我会一点 Python」
 输出：
 {
   "delivery": { "value": "miniprogram", "evidence": "做个帮人记账的小程序" },
   "team_size": null,
-  "skills": [ { "lang": "python", "level": "beginner", "evidence": "我会一点 Python" } ],
+  "ai_workflow": null,
   "timeline": null,
   "budget": null,
   "expected_users": { "amount": 10, "evidence": "大概 10 个人用" },
@@ -136,7 +148,7 @@ budget.unit: month | year
 {
   "delivery": { "value": "web", "evidence": "做个查资料的网页" },
   "team_size": { "value": "2-3", "evidence": "我们组三个人用" },
-  "skills": [],
+  "ai_workflow": null,
   "timeline": null,
   "budget": null,
   "expected_users": null,
@@ -151,7 +163,7 @@ budget.unit: month | year
 {
   "delivery": { "value": "web", "evidence": "想做个网页" },
   "team_size": null,
-  "skills": [],
+  "ai_workflow": null,
   "timeline": null,
   "budget": null,
   "expected_users": null,
@@ -164,5 +176,23 @@ budget.unit: month | year
  引擎会据此推一套带数据库的方案。
  「不要账号」也是同一句里说的，但一条 evidence 只能对应一个 values 列表，
  所以这里只写「收藏只存浏览器里」能支撑的结论。原文里这几句是连着的，
- 也可以整段当 evidence：「不要账号、不要广告，收藏只存浏览器里」。）`;
+ 也可以整段当 evidence：「不要账号、不要广告，收藏只存浏览器里」。）
+
+输入：「我不会写代码，只想用 Cursor 自然语言让 AI 帮我写，我该选什么技术栈？」
+输出：
+{
+  "delivery": null,
+  "team_size": null,
+  "ai_workflow": { "value": "full_auto", "evidence": "我不会写代码，只想用 Cursor 自然语言让 AI 帮我写" },
+  "timeline": null,
+  "budget": null,
+  "expected_users": null,
+  "capabilities": null,
+  "compliance": null,
+  "goal_type": null
+}
+（注意两点：
+ 1. ai_workflow 填 full_auto 而不是 null——他明确说了"让 AI 帮我写"，这是**分工**，不是水平。
+ 2. delivery 是 null。他说了"技术栈"但没说做成网页/小程序/桌面，这是**真缺失**，
+    必须交给系统去问，不能因为"问技术栈大概是网页吧"就填 web。）`;
 }

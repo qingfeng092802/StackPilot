@@ -28,9 +28,17 @@ function ok(name: string, cond: boolean, extra = '') {
 
 const h06 = holdout.cases.find((c: any) => c.id === 'H06');
 const VEC_MEDIUM: ConstraintVector = h06.blind_constraint_vector;
-const VEC_HIGH: ConstraintVector = { ...VEC_MEDIUM, timeline_weeks: 8, budget_cny_month: 0, expected_users: 200 } as ConstraintVector;
+/**
+ * 补齐到 high。注意必须同时补 ai_workflow：
+ * v1.7.0 之后它在核心组里，而 D1 的历史向量没有这个字段，
+ * 只补 timeline/budget/users 的话核心组仍然缺一项 → 最多 medium。
+ */
+const VEC_HIGH: ConstraintVector = {
+  ...VEC_MEDIUM, ai_workflow: 'assisted',
+  timeline_weeks: 8, budget_cny_month: 0, expected_users: 200,
+} as ConstraintVector;
 const VEC_LOW: ConstraintVector = {
-  delivery: 'web', team_size: '1', skills: null, timeline_weeks: null,
+  delivery: 'web', team_size: '1', ai_workflow: null, timeline_weeks: null,
   budget_cny_month: null, expected_users: null, required_capabilities: null,
   compliance: null, goal_type: null,
 } as ConstraintVector;

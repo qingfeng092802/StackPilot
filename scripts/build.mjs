@@ -41,14 +41,30 @@ const cmd = [
 
 const r = spawnSync(cmd, { cwd: root, stdio: 'inherit', shell: true });
 if (r.status !== 0) {
-  console.error('esbuild 打包失败');
+  console.error('esbuild 打包失败（web server）');
+  process.exit(1);
+}
+
+// 1.5 MCP Server：打成 build/mcp.js，带 shebang 以便当 bin 用。
+//     为什么要 bundle 而不是只转译：bundle 之后 `npx` 拉下来的包里
+//     不需要解析 @modelcontextprotocol/sdk 的相对路径，启动更快、更不容易坏。
+const mcpFile = join(outDir, 'mcp.js');
+const mcpCmd = [
+  'npx esbuild mcp/server.ts',
+  '--bundle --platform=node --format=esm --target=node20 --log-level=warning',
+  `--banner:js=${q('#!/usr/bin/env node')}`,
+  `--outfile=${q(mcpFile)}`,
+].join(' ');
+const r2 = spawnSync(mcpCmd, { cwd: root, stdio: 'inherit', shell: true });
+if (r2.status !== 0) {
+  console.error('esbuild 打包失败（MCP server）');
   process.exit(1);
 }
 
 // ── 红线自检：产物里绝不能出现疑似 API Key ────────────────────────
 // 这一条不是"顺手加的检查"，是把"凭据不进产物"从口头承诺变成构建期强制。
 // 谁哪天为了图省事把 key 写进默认值，构建会直接失败，而不是等到链接被人扒。
-const code = readFileSync(outFile, 'utf8');
+const code = readFileSync(outFile, 'utf8') + readFileSync(join(outDir, 'mcp.js'), 'utf8');
 const suspicious = [
   { name: '疑似 Anthropic/DeepSeek key', re: /sk-[A-Za-z0-9_-]{16,}/g },
   { name: '疑似 key 赋值字面量', re: /(api[_-]?key|API_KEY)\s*[:=]\s*["'][^"'\s]{16,}["']/gi },
@@ -72,7 +88,9 @@ if (leaked) {
 }
 
 const size = statSync(outFile).size;
-console.log(`  server.js  ${(size / 1024).toFixed(0)} KB`);
+const mcpSize = statSync(join(outDir, 'mcp.js')).size;
+console.log(`  server.js  ${(size / 1024).toFixed(0)} KB   （Web 调试台）`);
+console.log(`  mcp.js     ${(mcpSize / 1024).toFixed(0)} KB   （MCP Server，stdio）`);
 console.log('  路由形态   多路径（要折叠成单路径就设 SP_SINGLE_PATH=1，运行时生效）');
 console.log('  凭据       无（运行时从 process.env 读）');
 console.log('  依赖       无（只用 node 内置模块）');

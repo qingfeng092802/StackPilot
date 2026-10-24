@@ -46,16 +46,11 @@ function fieldRows(v: ConstraintVector): string {
 
   put('交付形态', v.delivery ? DELIVERY_CN[v.delivery] ?? v.delivery : '（没提到）');
   put('几个人做', v.team_size ?? '（没提到）');
-  if (v.skills) {
-    const parts: string[] = [];
-    const S: Array<[string, number | undefined]> = [
-      ['JS / TS', v.skills.js], ['Python', v.skills.python], ['SQL', v.skills.sql],
-      ['运维', v.skills.ops], ['Go', v.skills.go], ['Rust', v.skills.rust], ['Java', v.skills.java],
-    ];
-    for (const [k, n] of S) if (typeof n === 'number' && n > 0) parts.push(`${k} ${Math.round(n * 100)}%`);
-    put('技术底子', parts.length ? parts.join('、') : '（没提到 / 都不熟）');
+  if (v.ai_workflow) {
+    const CN: Record<string, string> = { full_auto: '全让 AI 写', assisted: 'AI 写我来改', learning: '自己写为主' };
+    put('AI 参与方式', CN[v.ai_workflow] ?? v.ai_workflow);
   } else {
-    put('技术底子', '（没提到）');
+    put('AI 参与方式', '（没提到）');
   }
   put('多久要能用', v.timeline_weeks ? `${v.timeline_weeks} 周` : '（没提到）');
   put('每月预算', v.budget_cny_month === null || v.budget_cny_month === undefined ? '（没提到）' : `¥${v.budget_cny_month}`);

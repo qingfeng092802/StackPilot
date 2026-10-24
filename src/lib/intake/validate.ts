@@ -20,9 +20,8 @@ import {
   CAPABILITY_VALUES,
   COMPLIANCE_VALUES,
   DELIVERY_VALUES,
+  AI_WORKFLOW_VALUES,
   GOAL_VALUES,
-  SKILL_LANGS,
-  SKILL_LEVELS,
   TEAM_SIZE_VALUES,
 } from './prompt.ts';
 
@@ -84,37 +83,29 @@ const COMPLIANCE_KW: Record<string, string[]> = {
   payment: ['支付合规', '支付牌照', '资金', '结算'],
 };
 
-const SKILL_LANG_KW: Record<string, RegExp> = {
-  js: /js|javascript|typescript|前端|node/i,
-  python: /python|py\b/i,
-  sql: /sql|数据库|写查询/i,
-  ops: /运维|部署|服务器|linux|docker/i,
-  go: /\bgo\b|golang/i,
-  rust: /\brust\b/i,
-  java: /\bjava\b/i,
-};
-
 /**
- * 熟练度关键词。
+ * 【v1.7.0】取代 SKILL_LANG_KW / LEVEL_KW / LEVEL_SCORE。
  *
- * 为什么要卡这么死：数值字段（0–1）是模型最容易"给个合理值"的地方。
- * 如果 evidence 里根本没有程度词，说明用户没说清——这时应该去问，而不是取个中间值。
- * "我会 Python" 不算说清，"我会一点 Python" 才算。
+ * 判定的是**分工**（谁写代码），不是**水平**（会不会写）。
+ * 所以关键词全是"谁做什么"的表述，而不是"熟练/精通"这类程度词。
+ * 特别注意：'不会写代码' 归到 full_auto —— 在新定位下它回答的正是"谁来写"这个问题，
+ * 不再是"技能分多低"。（旧口径里它是 skills 全 0，会误伤纯静态需求。）
  */
-const LEVEL_KW: Record<string, string[]> = {
-  none: ['不会', '没写过', '没接触', '零基础', '不懂', '没学过', '小白'],
-  beginner: ['一点', '会点', '入门', '刚学', '简单', '稍微', '初步', '基础'],
-  basic: ['能写', '会用', '独立', '做过', '写过', '能用', '上手'],
-  proficient: ['熟练', '经常', '多年', '常用', '比较熟', '熟悉'],
-  expert: ['精通', '专家', '架构', '深度', '很熟'],
-};
-
-const LEVEL_SCORE: Record<string, number> = {
-  none: 0,
-  beginner: 0.3,
-  basic: 0.5,
-  proficient: 0.7,
-  expert: 0.9,
+const AI_WORKFLOW_KW: Record<string, string[]> = {
+  full_auto: [
+    '让 AI 帮我写', '让AI帮我写', 'AI 帮我写', 'AI帮我写', '让 AI 写', '让AI写',
+    '全让 AI', '全让AI', 'AI 生成', 'AI生成', '全自动',
+    '我不写代码', '我不会写代码', '不会写代码', '不写代码', '不想自己写',
+    'Cursor', 'cursor', 'Copilot', 'copilot', 'vibe coding', 'vibecoding',
+  ],
+  assisted: [
+    '我来改', '我会改', '自己改', '自己调', '我会看', '看得懂', '能看懂',
+    'AI 写我改', 'AI写我改', '改一改', '会检查',
+  ],
+  learning: [
+    '想学', '借这个学', '借这个项目学', '边做边学', '学习', '练手',
+    '自己写为主', '主要自己写', '自己动手', '想练',
+  ],
 };
 
 const NEGATION_RE = /不|没|无|免|别|勿/;
@@ -168,7 +159,7 @@ export function parseIntake(raw: string, model: any): IntakeParse {
    * 不认识的键不影响结果，但必须在 dropped / notes 里留痕。
    */
   const KNOWN_MODEL_KEYS = new Set([
-    'delivery', 'team_size', 'goal_type', 'skills',
+    'delivery', 'team_size', 'goal_type', 'ai_workflow',
     'timeline', 'budget', 'expected_users',
     'capabilities', 'compliance',
   ]);
@@ -180,7 +171,7 @@ export function parseIntake(raw: string, model: any): IntakeParse {
 
   /** 枚举字段的通用处理：evidence 溯源 + 值域 + 关键词三连 */
   function enumField(
-    field: 'delivery' | 'team_size' | 'goal_type',
+    field: 'delivery' | 'team_size' | 'goal_type' | 'ai_workflow',
     allowed: readonly string[],
     kw: Record<string, string[]>,
   ) {
@@ -198,6 +189,9 @@ export function parseIntake(raw: string, model: any): IntakeParse {
   enumField('delivery', DELIVERY_VALUES, DELIVERY_KW);
   enumField('team_size', TEAM_SIZE_VALUES, TEAM_KW);
   enumField('goal_type', GOAL_VALUES, GOAL_KW);
+  // 【v1.7.0】取代原来的 skills 数组校验（语言 × 熟练度）。
+  // 走的是同一个 enumField：evidence 必须逐字、值必须在枚举里、关键词必须对得上。
+  enumField('ai_workflow', AI_WORKFLOW_VALUES, AI_WORKFLOW_KW);
 
   // ---- 多值字段（capabilities / compliance）----
   /**
@@ -269,39 +263,6 @@ export function parseIntake(raw: string, model: any): IntakeParse {
 
   multiField('capabilities', 'required_capabilities', CAPABILITY_VALUES, CAP_KW);
   multiField('compliance', 'compliance', COMPLIANCE_VALUES, COMPLIANCE_KW);
-
-  // ---- skills：语言 × 熟练度 ----
-  if (Array.isArray(m.skills) && m.skills.length > 0) {
-    const profile: Record<string, number> = {};
-    let any = false;
-    for (const it of m.skills) {
-      const lang = String(it?.lang ?? '');
-      const level = String(it?.level ?? '');
-      if (!isQuoted(it?.evidence, raw)) { drop('skills', it, 'evidence 不是原文的连续片段'); continue; }
-      if (!SKILL_LEVELS.includes(level as any)) { drop('skills', it, `熟练度 ${level} 不在允许的枚举里`); continue; }
-      const ev = String(it.evidence);
-      if (!has(ev, LEVEL_KW[level] ?? [])) {
-        drop('skills', it, `evidence 里读不出「${level}」这个程度——用户没说程度就不该给数值`);
-        continue;
-      }
-      if (lang === '*') {
-        // "*" = 用户明确说自己完全不会写代码。展开成全部语言 0 分，
-        // 这是"不会"这个事实的完整编码，不是猜。
-        if (level !== 'none') { drop('skills', it, '"*" 只能配 level=none'); continue; }
-        for (const l of SKILL_LANGS) profile[l] = 0;
-        any = true;
-        continue;
-      }
-      if (!SKILL_LANGS.includes(lang as any)) { drop('skills', it, `语言 ${lang} 不在允许的枚举里`); continue; }
-      if (!SKILL_LANG_KW[lang]?.test(ev)) { drop('skills', it, `evidence 里没提到 ${lang}`); continue; }
-      profile[lang] = LEVEL_SCORE[level];
-      any = true;
-    }
-    if (any) {
-      vector.skills = profile;
-      evidence.skills = m.skills.map((s: any) => String(s?.evidence ?? '')).filter(Boolean).join(' / ');
-    }
-  }
 
   // ---- 数值字段 ----
   const users = m.expected_users;
