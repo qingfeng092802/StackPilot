@@ -1,0 +1,390 @@
+{
+  "meta": {
+    "purpose": "D1 候选池：用于估计真实需求的**交付形态分布**，从而判断闭集（10 套组合）的覆盖率。",
+    "source": "V2EX /go/create（分享创造）节点第 1–3 页",
+    "source_url": "https://www.v2ex.com/go/create",
+    "fetched_at": "2026-10-23",
+    "total": 60,
+    "classification_basis": "仅依据帖子标题，未逐条打开正文。因此本文件只用于**分布估计**，不能用于选型评估（选型评估见 d1-holdout.json）。",
+    "known_bias": [
+      "分享创造节点以独立开发者小工具为主，不代表「新手转行 agent 开发做正式产品」的需求分布。",
+      "标题会低估信息量：标为 desktop 的帖子里可能也有 Web 版。",
+      "该节点没有「求推荐」帖，只有「我做完了」帖——这是它与 D1 原始定义的差别。"
+    ],
+    "delivery_form_enum": [
+      "web",
+      "miniprogram",
+      "selfhost",
+      "mobile",
+      "desktop",
+      "extension",
+      "cli",
+      "mcp",
+      "content",
+      "promo",
+      "other"
+    ]
+  },
+  "candidates": [
+    {
+      "id": "P01",
+      "title": "做了个 Mac 小工具，在屏幕边上看 Codex / Claude Code 还剩多少额度",
+      "delivery_form": "desktop",
+      "is_product": true
+    },
+    {
+      "id": "P02",
+      "title": "sshfs-win-tray：600KB 的 SSHFS-Win 图形前端，把 SSH 服务器挂成 Windows 盘符",
+      "delivery_form": "desktop",
+      "is_product": true
+    },
+    {
+      "id": "P03",
+      "title": "casbin-gateway：支持 29 个 Agent 的桌面端管理助手",
+      "delivery_form": "desktop",
+      "is_product": true
+    },
+    {
+      "id": "P04",
+      "title": "为了不浪费 token，写了个 IDEA 平替（开源）",
+      "delivery_form": "desktop",
+      "is_product": true
+    },
+    {
+      "id": "P05",
+      "title": "用 Rust 写了个数据库客户端 DbCat，大部分代码是 AI 写的",
+      "delivery_form": "desktop",
+      "is_product": true
+    },
+    {
+      "id": "P06",
+      "title": "分享一个自己做的翻译插件 mewCat，蓝白配色",
+      "delivery_form": "extension",
+      "is_product": true
+    },
+    {
+      "id": "P07",
+      "title": "开源！公众号一键发布工具懒人版",
+      "delivery_form": "cli",
+      "is_product": true
+    },
+    {
+      "id": "P08",
+      "title": "最近用 Vibe Coding 做了个抛硬币小程序",
+      "delivery_form": "miniprogram",
+      "is_product": true
+    },
+    {
+      "id": "P09",
+      "title": "做了个麦当劳 MCP 省钱助手「麦麦精算师」",
+      "delivery_form": "mcp",
+      "is_product": true
+    },
+    {
+      "id": "P10",
+      "title": "欢迎使用 Varfly 一键部署你的出海项目",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P11",
+      "title": "codex 最近重置多，Vibe 了一个三星堆人偶",
+      "delivery_form": "other",
+      "is_product": false
+    },
+    {
+      "id": "P12",
+      "title": "为 ChatGPT 网页版提供右侧悬停式对话导航浏览器插件",
+      "delivery_form": "extension",
+      "is_product": true
+    },
+    {
+      "id": "P13",
+      "title": "摸鱼小游戏-牌序(PAIXU)，仿小丑牌玩法",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P14",
+      "title": "一款把 Agent 伺候美美的游戏引擎",
+      "delivery_form": "other",
+      "is_product": true
+    },
+    {
+      "id": "P15",
+      "title": "给全球闷声发大财的网站做了一个排行榜",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P16",
+      "title": "[限时内购限免] 免费领取永久会员",
+      "delivery_form": "promo",
+      "is_product": false
+    },
+    {
+      "id": "P17",
+      "title": "做了个只做数据的特斯拉 App，三个月发了 25 个版本",
+      "delivery_form": "mobile",
+      "is_product": true
+    },
+    {
+      "id": "P18",
+      "title": "Muse 的问题，我们也犯过",
+      "delivery_form": "content",
+      "is_product": false
+    },
+    {
+      "id": "P19",
+      "title": "相册同步工具，同时支持小米云服务与 iCloud，web 页面配置",
+      "delivery_form": "selfhost",
+      "is_product": true
+    },
+    {
+      "id": "P20",
+      "title": "OrangeLen：macOS 按空格就能看懂整个项目文件夹和 AI 产物",
+      "delivery_form": "desktop",
+      "is_product": true
+    },
+    {
+      "id": "P21",
+      "title": "使用 Whisper 本地生成字幕的 iOS 多媒体播放器，已上架 App Store",
+      "delivery_form": "mobile",
+      "is_product": true
+    },
+    {
+      "id": "P22",
+      "title": "做了几个不上传文件的浏览器小工具：去照片定位、批量改名预览、图片合并 PDF",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P23",
+      "title": "统计了 7K 个产品的技术栈，分享一点发现",
+      "delivery_form": "content",
+      "is_product": false
+    },
+    {
+      "id": "P24",
+      "title": "自己有取名需求，做了个根据八字取名的小程序",
+      "delivery_form": "miniprogram",
+      "is_product": true
+    },
+    {
+      "id": "P25",
+      "title": "我在一个 3 周前的新词上做了个站，想测一下 GEO 到底有没有用",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P26",
+      "title": "跨链转 USDT 之前，我现在固定核对这几项",
+      "delivery_form": "content",
+      "is_product": false
+    },
+    {
+      "id": "P27",
+      "title": "开源！全套公众号写作、封面、发布自动化工具包",
+      "delivery_form": "cli",
+      "is_product": true
+    },
+    {
+      "id": "P28",
+      "title": "做了一个 MacOS 的 Wifi 检查 app",
+      "delivery_form": "desktop",
+      "is_product": true
+    },
+    {
+      "id": "P29",
+      "title": "[自用开源] 给安卓写了个网页电台 App：随声 / Tune Roam",
+      "delivery_form": "mobile",
+      "is_product": true
+    },
+    {
+      "id": "P30",
+      "title": "Grok Bot 最重要的事——备份！而且别被平台锁死",
+      "delivery_form": "content",
+      "is_product": false
+    },
+    {
+      "id": "P31",
+      "title": "Codex 老卡在 at capacity，我写了个 macOS 小工具替它点「重试」",
+      "delivery_form": "desktop",
+      "is_product": true
+    },
+    {
+      "id": "P32",
+      "title": "[开源公测] 做了个让 AI 替我打的三国游戏",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P33",
+      "title": "workskill.tools — 给 coding agent 用的技能商店",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P34",
+      "title": "好几年没玩魔方了，最近 Vibe Coding 了个拍照解魔方的小程序",
+      "delivery_form": "miniprogram",
+      "is_product": true
+    },
+    {
+      "id": "P35",
+      "title": "开源一个一键生成 TUI 架构图的 skill",
+      "delivery_form": "cli",
+      "is_product": true
+    },
+    {
+      "id": "P36",
+      "title": "应用商店截图美化工具 Pixsolo，继续免费",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P37",
+      "title": "[自荐] IP Glance 已上架 AppStore",
+      "delivery_form": "mobile",
+      "is_product": true
+    },
+    {
+      "id": "P38",
+      "title": "划懂：免费的纯客户端划词解释插件",
+      "delivery_form": "extension",
+      "is_product": true
+    },
+    {
+      "id": "P39",
+      "title": "做了个 Cloudflare 和 Vercel 的 macOS 小工具",
+      "delivery_form": "desktop",
+      "is_product": true
+    },
+    {
+      "id": "P40",
+      "title": "花了两周做了个 bra size 计算器，纯静态 + Cloudflare Pages",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P41",
+      "title": "做了款开源免费表情包编辑器，5872 张表情包素材",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P42",
+      "title": "逆向了小丑牌为网页游戏",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P43",
+      "title": "做了个网页电台：随机一站，听听世界上 3.5 万个电台",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P44",
+      "title": "请欣赏，百鬼夜行绘卷",
+      "delivery_form": "other",
+      "is_product": false
+    },
+    {
+      "id": "P45",
+      "title": "Rim：一个非稳定类 git 版本管理工具",
+      "delivery_form": "cli",
+      "is_product": true
+    },
+    {
+      "id": "P46",
+      "title": "做了一款下载器",
+      "delivery_form": "desktop",
+      "is_product": true
+    },
+    {
+      "id": "P47",
+      "title": "做了个浏览器扩展，把 AI 对话一键导出或存进自己的 GitHub",
+      "delivery_form": "extension",
+      "is_product": true
+    },
+    {
+      "id": "P48",
+      "title": "[送会员] 加班过多，脑雾了？",
+      "delivery_form": "promo",
+      "is_product": false
+    },
+    {
+      "id": "P49",
+      "title": "ago：纯 zsh 写的历史命令搜索，零依赖",
+      "delivery_form": "cli",
+      "is_product": true
+    },
+    {
+      "id": "P50",
+      "title": "LayoutKeeper：说说窗口工具的三分法",
+      "delivery_form": "desktop",
+      "is_product": true
+    },
+    {
+      "id": "P51",
+      "title": "做了一个生产级的在线户型图编辑器，支持 DXF 导出",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P52",
+      "title": "做了近 10 年合租车主，我开源了自己的订阅账本 Calends",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P53",
+      "title": "写 Markdown，一键排好 X 长文",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P54",
+      "title": "视频转 AI 笔记工具 A2md",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P55",
+      "title": "把不同 Coding Agent 的对话记录实时同步到网上",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P56",
+      "title": "做了个 FIBO 2 在线生图和改图工具",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P57",
+      "title": "写了一个在线检测 PHP 版本的工具",
+      "delivery_form": "web",
+      "is_product": true
+    },
+    {
+      "id": "P58",
+      "title": "Vonode iOS 送码第三波",
+      "delivery_form": "mobile",
+      "is_product": true
+    },
+    {
+      "id": "P59",
+      "title": "Codex 桌面版的崩溃转储会悄悄吃掉几十上百 GB",
+      "delivery_form": "content",
+      "is_product": false
+    },
+    {
+      "id": "P60",
+      "title": "[娱乐] 做了一个评价网站 AI 感的网站",
+      "delivery_form": "web",
+      "is_product": true
+    }
+  ]
+}

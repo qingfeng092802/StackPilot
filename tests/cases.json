@@ -1,0 +1,257 @@
+{
+  "meta": {
+    "version": "0.1.0",
+    "note": "M0 D3 测试集。当前 6 条为**模拟用例**（用于验证打分引擎），D1 必须替换为 20 条真实帖子。替换时保留 id 与 structure，只改 raw_input / constraint_vector / source。",
+    "labeling_rule": "constraint_vector 由 D2 人工标注。抽不出的字段填 null 并在 why_null 里写原因（不是'用户没提'，而是'用户说了做小程序但没说量级'）。",
+    "status": "SIMULATED — 待 D1 替换",
+    "kind_semantics": "kind 缺省 = requirement（需求用例，进差异度/违背率/强制率的分母）；kind = coverage_test 是合成探针，只验证 coverage_status 三态判定，不进统计分母。",
+    "coverage_test_note": "CT01/CT02/CT03 覆盖 covered / uncovered / uncovered(null+关键词)。**partial 目前无法构造**：UNSUPPORTED_CAPABILITIES 是空数组，没有'闭集无法表达的能力'就永远判不出部分覆盖。这是已知缺口，不是用例设计遗漏。"
+  },
+  "cases": [
+    {
+      "id": "S01",
+      "source": "模拟",
+      "source_url": null,
+      "raw_input": "我想做个内部用的小工具，公司十来个人用，能提交报销单、上传发票照片、看到自己的历史记录。我自己一个人做，前端基本不会，后端只会一点 Python，希望一个月内能用上。",
+      "constraint_vector": {
+        "delivery": "web",
+        "team_size": "1",
+        "ai_workflow": "assisted",
+        "timeline_weeks": 4,
+        "budget_cny_month": 0,
+        "expected_users": 15,
+        "required_capabilities": [
+          "auth",
+          "file"
+        ],
+        "compliance": [
+          "personal_data"
+        ],
+        "goal_type": "internal_tool"
+      },
+      "why_null": {}
+    },
+    {
+      "id": "S02",
+      "source": "模拟",
+      "source_url": null,
+      "raw_input": "我会 Python，写过爬虫和脚本。现在想做一个合同审查助手，上传 PDF 自动抽条款、跟标准模板对比标出差异，给法务同事用。大概几十个人，每天用几十次。需要能存上传的文件和审查记录。",
+      "constraint_vector": {
+        "delivery": "web",
+        "team_size": "1",
+        "ai_workflow": "assisted",
+        "timeline_weeks": 8,
+        "budget_cny_month": 50,
+        "expected_users": 50,
+        "required_capabilities": [
+          "file",
+          "ai"
+        ],
+        "compliance": [
+          "personal_data"
+        ],
+        "goal_type": "product"
+      },
+      "why_null": {}
+    },
+    {
+      "id": "S03",
+      "source": "模拟",
+      "source_url": null,
+      "raw_input": "我们是一个 6 人的小团队，要做一个面向 C 端的在线课程平台，需要注册登录、微信支付买课、看视频、评论。预计上线后半年内到两万用户。我是技术负责人，团队里两个前端三个后端。",
+      "constraint_vector": {
+        "delivery": "web",
+        "team_size": "5+",
+        "ai_workflow": "assisted",
+        "timeline_weeks": 12,
+        "budget_cny_month": 500,
+        "expected_users": 20000,
+        "required_capabilities": [
+          "auth",
+          "payment"
+        ],
+        "compliance": [
+          "payment",
+          "personal_data"
+        ],
+        "goal_type": "product"
+      },
+      "why_null": {}
+    },
+    {
+      "id": "S04",
+      "source": "模拟",
+      "source_url": null,
+      "raw_input": "想做个记账的小程序，给自己和几个朋友用，记一下每天花销，月底看统计。我不会写代码，只会改改别人给的东西。个人开发者，没预算。",
+      "constraint_vector": {
+        "delivery": "miniprogram",
+        "team_size": "1",
+        "ai_workflow": "assisted",
+        "timeline_weeks": 6,
+        "budget_cny_month": 0,
+        "expected_users": 10,
+        "required_capabilities": [],
+        "compliance": [],
+        "goal_type": "internal_tool"
+      },
+      "why_null": {}
+    },
+    {
+      "id": "S05",
+      "source": "模拟",
+      "source_url": null,
+      "raw_input": "我在转行做前端，想做一个能放进作品集的项目，最好带点 AI。做一个个人知识库，能上传文章、自动生成摘要和标签、支持搜索。会 JS 和 React，做过几个 demo。",
+      "constraint_vector": {
+        "delivery": "web",
+        "team_size": "1",
+        "ai_workflow": "assisted",
+        "timeline_weeks": 8,
+        "budget_cny_month": 100,
+        "expected_users": 100,
+        "required_capabilities": [
+          "auth",
+          "ai",
+          "file"
+        ],
+        "compliance": [],
+        "goal_type": "portfolio"
+      },
+      "why_null": {}
+    },
+    {
+      "id": "S06",
+      "source": "模拟",
+      "source_url": null,
+      "raw_input": "帮运营做一个内部数据看板，就几个人看，两周内要能用。数据从 Excel 导进去，能筛选和导出。我会一点 JS。",
+      "constraint_vector": {
+        "delivery": "web",
+        "team_size": "1",
+        "ai_workflow": "assisted",
+        "timeline_weeks": 2,
+        "budget_cny_month": 0,
+        "expected_users": 10,
+        "required_capabilities": [
+          "file"
+        ],
+        "compliance": [],
+        "goal_type": "internal_tool"
+      },
+      "why_null": {}
+    },
+    {
+      "id": "S07",
+      "source": "模拟",
+      "source_url": null,
+      "raw_input": "我是全栈，Python 和 JS/TS 都写了好几年。想做一个 AI 客服知识库，上传文档自动切分建索引，用户提问走 RAG 回答。自己一个人做，两个月能接受，愿意付点钱买服务。",
+      "constraint_vector": {
+        "delivery": "web",
+        "team_size": "1",
+        "ai_workflow": "assisted",
+        "timeline_weeks": 8,
+        "budget_cny_month": 200,
+        "expected_users": 500,
+        "required_capabilities": [
+          "auth",
+          "ai",
+          "file"
+        ],
+        "compliance": [
+          "personal_data"
+        ],
+        "goal_type": "product"
+      },
+      "why_null": {},
+      "purpose": "边界用例：python>=0.6 且 js>=0.6，验证 v0.4.2 收窄后的规则**不应**触发 -2.5 惩罚"
+    },
+    {
+      "id": "CT01",
+      "kind": "coverage_test",
+      "source": "合成探针",
+      "source_url": null,
+      "raw_input": "我想做一个网页工具，输入一段文字自动生成摘要，就我自己和同事用，一个人做，两周内要能用，不需要登录也不用存数据，不花钱。",
+      "constraint_vector": {
+        "delivery": "web",
+        "team_size": "1",
+        "ai_workflow": "assisted",
+        "timeline_weeks": 2,
+        "budget_cny_month": 0,
+        "expected_users": 10,
+        "required_capabilities": [
+          "ai"
+        ],
+        "compliance": [],
+        "goal_type": "internal_tool"
+      },
+      "why_null": {},
+      "purpose": "coverage_status = covered。同时是 C11 的正面用例：不需要登录/文件/持久化，应命中零数据库方案"
+    },
+    {
+      "id": "CT02",
+      "kind": "coverage_test",
+      "source": "合成探针",
+      "source_url": null,
+      "raw_input": "我想做一个 Windows 桌面小工具，监控某个文件夹的变化并自动备份到网盘，自己用。",
+      "constraint_vector": {
+        "delivery": "desktop",
+        "team_size": "1",
+        "ai_workflow": "assisted",
+        "timeline_weeks": 4,
+        "budget_cny_month": 0,
+        "expected_users": 5,
+        "required_capabilities": [],
+        "compliance": [],
+        "goal_type": "internal_tool"
+      },
+      "why_null": {},
+      "purpose": "coverage_status = uncovered（delivery=desktop）。闭集没有桌面端模板，必须不出方案"
+    },
+    {
+      "id": "CT03",
+      "kind": "coverage_test",
+      "source": "合成探针",
+      "source_url": null,
+      "raw_input": "我想写个命令行工具，批量把 markdown 转成 pdf，自己用，会一点 Python。",
+      "constraint_vector": {
+        "delivery": null,
+        "team_size": "1",
+        "ai_workflow": "assisted",
+        "timeline_weeks": 2,
+        "budget_cny_month": 0,
+        "expected_users": 3,
+        "required_capabilities": [],
+        "compliance": [],
+        "goal_type": "internal_tool"
+      },
+      "why_null": {
+        "delivery": "用户没说交付形态，只说了「命令行工具」——正是要靠 raw_input 关键词兜底的情况"
+      },
+      "purpose": "coverage_status = uncovered（delivery 为 null，靠 raw_input 命中「命令行」）。同时验证 uncovered 优先于 low_confidence"
+    },
+    {
+      "id": "CT04",
+      "kind": "confidence_test",
+      "source": "合成探针",
+      "source_url": null,
+      "raw_input": "我想做个网页工具，帮我把表格里的数据自动画成图表，我会一点 JS。",
+      "constraint_vector": {
+        "delivery": "web",
+        "team_size": null,
+        "ai_workflow": "assisted",
+        "timeline_weeks": null,
+        "budget_cny_month": null,
+        "expected_users": null,
+        "required_capabilities": [],
+        "compliance": [],
+        "goal_type": null
+      },
+      "why_null": {
+        "team_size": "原文没说几个人做",
+        "timeline_weeks": "原文没说多久要",
+        "budget_cny_month": "原文没提预算",
+        "expected_users": "原文没提用户量",
+        "goal_type": "没说做给谁用、为什么做"
+      },
+      "purpose": "confidence = medium：三个关键字段（delivery/skills/required_capabilities）都在，但 5/9 字段缺失（0.556 > 0.4），应正常出方案并带 confidence_warning"
+    }
+  ]
+}
