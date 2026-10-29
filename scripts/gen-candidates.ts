@@ -83,7 +83,8 @@ const out = {
   max_total: MAX_TOTAL,
   candidates,
 };
-const outPath = resolve(import.meta.dirname, '..', 'out', 'candidates-for-review.json');
+// 评审材料要进库（out/ 会被 gitignore 吞掉），放 src/data/candidates-pending/ 最贴'待评审入库'语义
+const outPath = resolve(import.meta.dirname, '..', 'src', 'data', 'candidates-pending', 'candidates-for-review.json');
 writeFileSync(outPath, JSON.stringify(out, null, 2) + '\n');
 console.log(`候选生成完成：现有 ${existing.size} 套，上限 ${MAX_TOTAL}，产出候选 ${candidates.length} 套 → ${outPath}`);
 for (const c of candidates) console.log(`  ${c.proposed_id}：${c.name_draft}`);

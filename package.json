@@ -1,6 +1,6 @@
 {
   "name": "stackpilot-mcp",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "private": false,
   "type": "module",
   "description": "MCP Server：宿主模型借用 + 三级解析路由 + 架构契约落盘。把一句大白话变成技术选型 + 可直接落盘的启动规范",
@@ -32,7 +32,7 @@
     "dev:ts": "npx tsx server/index.ts",
     "mcp": "node build/mcp.js",
     "mcp:smoke": "npx tsx scripts/mcp-smoke.ts",
-    "test": "npx tsx scripts/check-consistency.ts && npx tsx scripts/test-guards.ts && npx tsx scripts/test-view-model.ts && npx tsx scripts/test-intake.ts && npx tsx scripts/test-host-intake.ts && npx tsx scripts/test-blueprint.ts && npx tsx scripts/test-scaffold.ts && npx tsx scripts/test-inspect.ts"
+    "test": "npx tsx scripts/check-consistency.ts && npx tsx scripts/test-guards.ts && npx tsx scripts/test-view-model.ts && npx tsx scripts/test-intake.ts && npx tsx scripts/test-host-intake.ts && npx tsx scripts/test-blueprint.ts && npx tsx scripts/test-scaffold.ts && npx tsx scripts/test-inspect.ts && npx tsx scripts/test-registry.ts"
   },
   "devDependencies": {
     "esbuild": "^0.25.2",

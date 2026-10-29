@@ -1,0 +1,168 @@
+{
+  "generated_at": "2026-10-29T17:45:57.592Z",
+  "note": "离线枚举候选，仅供人工评审。按 ROADMAP 约定：评审通过才进 combos.json，同一 PR 必须带 holdout 扩展。",
+  "current_total": 12,
+  "max_total": 20,
+  "candidates": [
+    {
+      "proposed_id": "C13",
+      "components": {
+        "fe": "FE-01",
+        "be": null,
+        "db": null,
+        "ai": null,
+        "deploy": "DP-01"
+      },
+      "name_draft": "Next.js",
+      "status": "待人工评审",
+      "required_before_merge": [
+        "one_liner / first_step / beginner_pitfalls（真实可执行，非模板话术）",
+        "base_scores 六维（含 ai_friendliness，须注明判断依据）",
+        "fit_rules 与 hard_exclude_when（用现有 DSL）",
+        "evidence.official_docs（官方文档 URL）",
+        "last_reviewed（人工审核日期）",
+        "同步扩展 tests/d1-holdout.json 盲标集（保持跨版本可比）"
+      ]
+    },
+    {
+      "proposed_id": "C14",
+      "components": {
+        "fe": "FE-01",
+        "be": null,
+        "db": null,
+        "ai": null,
+        "deploy": "DP-02"
+      },
+      "name_draft": "Next.js",
+      "status": "待人工评审",
+      "required_before_merge": [
+        "one_liner / first_step / beginner_pitfalls（真实可执行，非模板话术）",
+        "base_scores 六维（含 ai_friendliness，须注明判断依据）",
+        "fit_rules 与 hard_exclude_when（用现有 DSL）",
+        "evidence.official_docs（官方文档 URL）",
+        "last_reviewed（人工审核日期）",
+        "同步扩展 tests/d1-holdout.json 盲标集（保持跨版本可比）"
+      ]
+    },
+    {
+      "proposed_id": "C15",
+      "components": {
+        "fe": "FE-01",
+        "be": null,
+        "db": null,
+        "ai": null,
+        "deploy": "DP-03"
+      },
+      "name_draft": "Next.js",
+      "status": "待人工评审",
+      "required_before_merge": [
+        "one_liner / first_step / beginner_pitfalls（真实可执行，非模板话术）",
+        "base_scores 六维（含 ai_friendliness，须注明判断依据）",
+        "fit_rules 与 hard_exclude_when（用现有 DSL）",
+        "evidence.official_docs（官方文档 URL）",
+        "last_reviewed（人工审核日期）",
+        "同步扩展 tests/d1-holdout.json 盲标集（保持跨版本可比）"
+      ]
+    },
+    {
+      "proposed_id": "C16",
+      "components": {
+        "fe": "FE-01",
+        "be": null,
+        "db": null,
+        "ai": "AI-01",
+        "deploy": "DP-01"
+      },
+      "name_draft": "Next.js",
+      "status": "待人工评审",
+      "required_before_merge": [
+        "one_liner / first_step / beginner_pitfalls（真实可执行，非模板话术）",
+        "base_scores 六维（含 ai_friendliness，须注明判断依据）",
+        "fit_rules 与 hard_exclude_when（用现有 DSL）",
+        "evidence.official_docs（官方文档 URL）",
+        "last_reviewed（人工审核日期）",
+        "同步扩展 tests/d1-holdout.json 盲标集（保持跨版本可比）"
+      ]
+    },
+    {
+      "proposed_id": "C17",
+      "components": {
+        "fe": "FE-01",
+        "be": null,
+        "db": null,
+        "ai": "AI-01",
+        "deploy": "DP-02"
+      },
+      "name_draft": "Next.js",
+      "status": "待人工评审",
+      "required_before_merge": [
+        "one_liner / first_step / beginner_pitfalls（真实可执行，非模板话术）",
+        "base_scores 六维（含 ai_friendliness，须注明判断依据）",
+        "fit_rules 与 hard_exclude_when（用现有 DSL）",
+        "evidence.official_docs（官方文档 URL）",
+        "last_reviewed（人工审核日期）",
+        "同步扩展 tests/d1-holdout.json 盲标集（保持跨版本可比）"
+      ]
+    },
+    {
+      "proposed_id": "C18",
+      "components": {
+        "fe": "FE-01",
+        "be": null,
+        "db": null,
+        "ai": "AI-01",
+        "deploy": "DP-03"
+      },
+      "name_draft": "Next.js",
+      "status": "待人工评审",
+      "required_before_merge": [
+        "one_liner / first_step / beginner_pitfalls（真实可执行，非模板话术）",
+        "base_scores 六维（含 ai_friendliness，须注明判断依据）",
+        "fit_rules 与 hard_exclude_when（用现有 DSL）",
+        "evidence.official_docs（官方文档 URL）",
+        "last_reviewed（人工审核日期）",
+        "同步扩展 tests/d1-holdout.json 盲标集（保持跨版本可比）"
+      ]
+    },
+    {
+      "proposed_id": "C19",
+      "components": {
+        "fe": "FE-01",
+        "be": null,
+        "db": null,
+        "ai": "AI-03",
+        "deploy": "DP-01"
+      },
+      "name_draft": "Next.js",
+      "status": "待人工评审",
+      "required_before_merge": [
+        "one_liner / first_step / beginner_pitfalls（真实可执行，非模板话术）",
+        "base_scores 六维（含 ai_friendliness，须注明判断依据）",
+        "fit_rules 与 hard_exclude_when（用现有 DSL）",
+        "evidence.official_docs（官方文档 URL）",
+        "last_reviewed（人工审核日期）",
+        "同步扩展 tests/d1-holdout.json 盲标集（保持跨版本可比）"
+      ]
+    },
+    {
+      "proposed_id": "C20",
+      "components": {
+        "fe": "FE-01",
+        "be": null,
+        "db": null,
+        "ai": "AI-03",
+        "deploy": "DP-02"
+      },
+      "name_draft": "Next.js",
+      "status": "待人工评审",
+      "required_before_merge": [
+        "one_liner / first_step / beginner_pitfalls（真实可执行，非模板话术）",
+        "base_scores 六维（含 ai_friendliness，须注明判断依据）",
+        "fit_rules 与 hard_exclude_when（用现有 DSL）",
+        "evidence.official_docs（官方文档 URL）",
+        "last_reviewed（人工审核日期）",
+        "同步扩展 tests/d1-holdout.json 盲标集（保持跨版本可比）"
+      ]
+    }
+  ]
+}

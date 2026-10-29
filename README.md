@@ -4,7 +4,7 @@
 > 还能把这套架构**一键写成项目规则文件**、**生成可运行的骨架**、**反查你的存量项目偏离了几条**——
 > AI 在你的项目里会自动遵守，不用再复制粘贴。
 
-v2.1.0 · MIT · Node ≥ 20.11 · [ROADMAP](docs/ROADMAP-v2.1.md)
+v2.1.1 · MIT · Node ≥ 20.11 · [ROADMAP](docs/ROADMAP-v2.1.md) · [CHANGELOG](CHANGELOG.md)
 
 ## 为什么需要它
 
@@ -182,7 +182,7 @@ WorkBuddy 有两个坑必须知道：
 | 参数 | 类型 | 说明 |
 |---|---|---|
 | `combo_id` | string | 组合 ID |
-| `workspace_path` | string | **必须不存在（会创建）或为空目录**——脚手架永不覆盖用户文件 |
+| `workspace_path` | string | **必须不存在（会创建）或为"干净"目录**（只含 .git / README / LICENSE / .gitignore 等占位文件）——脚手架永不覆盖用户文件 |
 | `target_ide` | `"cursor"` / `"claude_code"` / `"both"` | 契约写入哪个 IDE，默认 both |
 
 ### `inspect_project` —— 存量项目反查（v2.1.0 新增，只读）
@@ -226,6 +226,7 @@ XML 边界逃逸 + 强制指定组合），命中的片段被剥离并留痕；�
 | `ANTHROPIC_API_KEY` | 否 | 不填走规则解析 + 模板兜底 |
 | `ANTHROPIC_BASE_URL` | 否 | 默认 `https://api.anthropic.com`；DeepSeek 用 `https://api.deepseek.com/anthropic` |
 | `ANTHROPIC_MODEL` | 否 | 默认 `deepseek-flash` |
+| `SP_TELEMETRY` | 否 | 设为 `1` 开启本地匿名反馈（只记 mode/confidence/top1_id 等结构化字段，**无原文无路径**），写入 `~/.stackpilot/usage.jsonl`。默认关闭；不想留数据直接删该文件即可 |
 
 > MCP Server 通过 **stdio** 通信。**任何写到 stdout 的内容都会破坏协议**——
 > 构建期已向 `build/mcp.js` 注入 stdout 守卫（任何 `console.log/info/warn` 一律改道 stderr），

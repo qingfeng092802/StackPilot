@@ -47,19 +47,25 @@ check('fit_rules 用 delta 不用 score（旧语义已废弃）', combos.every((
 // ── v2.1.0：last_reviewed 时效元数据。
 //    独立字段，不从 facts 的 verified_at 推导——组件快照日期与组合审核日期语义不同，
 //    一个组件更新不该静默刷新整个组合的"最近复核于"标签。
+//
+//    【日历体系统一为 UTC（v2.1.1）】写入（人工/脚本）与这里的断言都用 UTC 日历日：
+//    复核日是记录不是事件时刻，统一 UTC 才不会在跨时区环境抖——
+//    本机 UTC+8 的凌晨断言"今天审核"若按本地日历是 0 天，按 UTC 是 -1 天；
+//    CI runner 是 UTC，与本地日历混用会让边界日期 ±1 天回摆。
+//    末尾有跨日自检：daysSince(UTC 今天) 必须为 0，防两种体系混写。
 const REVIEW_STALE_DAYS = 180;
-// 用本地零点算天数差：审核日期写的是"本地日历日"，用 UTC 零点会在
-// 本机还在 UTC 前一天晚上时（如 UTC+8 的凌晨）把"今天审核"算成 -1 天
-const daysSince = (d: string) => {
-  const [y, m, day] = d.split('-').map(Number);
-  return Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(y, m - 1, day).getTime()) / 86400000);
-};
+const daysSince = (d: string) =>
+  Math.floor((Date.parse(new Date().toISOString().slice(0, 10) + 'T00:00:00Z') - Date.parse(d + 'T00:00:00Z')) / 86400000);
 check('每套组合都有 last_reviewed（组合级审核日期，独立字段）', combos.every((c: any) =>
   typeof c.last_reviewed === 'string'));
 check('last_reviewed 格式为 YYYY-MM-DD', combos.every((c: any) =>
   /^\d{4}-\d{2}-\d{2}$/.test(c.last_reviewed ?? '')));
 check(`last_reviewed 距今 < ${REVIEW_STALE_DAYS} 天（过期 = 组合需要人工复核）`, combos.every((c: any) =>
   daysSince(c.last_reviewed) >= 0 && daysSince(c.last_reviewed) < REVIEW_STALE_DAYS));
+// 跨日自检：无论 runner 时区，UTC 口径下"今天审核"必须恒为 0 天
+check('daysSince 跨日自检（UTC 今天 = 0 天，UTC 昨天 = 1 天）',
+  daysSince(new Date().toISOString().slice(0, 10)) === 0 &&
+  daysSince(new Date(Date.now() - 86400000).toISOString().slice(0, 10)) === 1);
 
 console.log('\n=== 2. 权重表：不含 fit（v0.4.2 不变量）===');
 const weightKeys = Object.keys(WEIGHTS.assisted);

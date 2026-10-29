@@ -89,12 +89,35 @@ try {
 
   group('四、scaffoldBlueprint 落盘与安全边界');
   {
-    // 非空目录拒绝
+    // ── 白名单判定（v2.1.1）：真实工作流是 mkdir && git init && README，这些要放行 ──
+    const gitInit = join(root, 'git-init');
+    mkdirSync(join(gitInit, '.git', 'objects'), { recursive: true });
+    writeFileSync(join(gitInit, 'README.md'), '# todo-app', 'utf8');
+    writeFileSync(join(gitInit, '.gitignore'), 'node_modules/\n', 'utf8');
+    const rGit = scaffoldBlueprint({ combo_id: 'C12', workspace_path: gitInit, target_ide: 'both' }, combos);
+    ok('git init + README + .gitignore 的目录放行', rGit.ok, rGit.ok ? '' : (rGit as any).error.slice(0, 120));
+    ok('放行目录骨架正常落盘', rGit.ok && existsSync(join(gitInit, 'package.json')));
+
+    // 含 package.json 拒绝（npm init 过的项目不是干净的）
+    const npmInit = join(root, 'npm-init');
+    mkdirSync(npmInit, { recursive: true });
+    writeFileSync(join(npmInit, 'package.json'), JSON.stringify({ name: 'x' }), 'utf8');
+    const rNpm = scaffoldBlueprint({ combo_id: 'C12', workspace_path: npmInit }, combos);
+    ok('含 package.json 拒绝', !rNpm.ok && (rNpm as any).error.includes('package.json'));
+
+    // 用户源码拒绝
+    const hasSrc = join(root, 'has-src');
+    mkdirSync(join(hasSrc, 'src'), { recursive: true });
+    writeFileSync(join(hasSrc, 'src', 'user-code.ts'), 'export {};', 'utf8');
+    const rSrc = scaffoldBlueprint({ combo_id: 'C12', workspace_path: hasSrc }, combos);
+    ok('含用户源码拒绝', !rSrc.ok && (rSrc as any).error.includes('src'));
+
+    // 白名单外的普通文件拒绝
     const occupied = join(root, 'occupied');
     mkdirSync(occupied, { recursive: true });
     writeFileSync(join(occupied, 'user-file.txt'), '用户的东西', 'utf8');
     const r1 = scaffoldBlueprint({ combo_id: 'C12', workspace_path: occupied }, combos);
-    ok('非空目录拒绝', !r1.ok && (r1 as any).error.includes('永不覆盖'));
+    ok('白名单外文件拒绝', !r1.ok && (r1 as any).error.includes('永不覆盖'));
     ok('拒绝后用户文件原样', readFileSync(join(occupied, 'user-file.txt'), 'utf8') === '用户的东西');
 
     // 空目录可写 + 契约顺带落盘

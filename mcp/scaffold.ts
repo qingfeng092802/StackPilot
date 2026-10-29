@@ -26,8 +26,40 @@ export type ScaffoldOutcome =
   | { ok: true; root: string; fileCount: number; nextStep: string; instruction: string }
   | { ok: false; error: string };
 
-function hasMeaningfulFiles(dir: string): boolean {
-  return readdirSync(dir).length > 0;
+/**
+ * 「目录干净」白名单判定（v2.1.1）。
+ *
+ * 为什么不能"非空即拒"：真实工作流是 `mkdir todo-app && cd todo-app && git init`，
+ * 或者先 npm init / 放个 README——这些目录对骨架来说是干净的，硬拒会误伤。
+ * 白名单：VCS 元数据与占位文档放行；命中清单外任何文件（尤其 package.json、用户源码）才拒绝。
+ */
+const ALLOWED_FILE_RE = /^(README[^/]*|LICENSE[^/]*|\.gitignore|\.gitattributes|\.editorconfig|\.env\.example)$/i;
+const ALLOWED_DIR_RE = /^(\.git|\.idea|\.vscode)$/;
+
+function isCleanWorkspace(dir: string): { clean: boolean; blockers: string[] } {
+  const blockers: string[] = [];
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    let st: { isDirectory: () => boolean; isFile: () => boolean };
+    try {
+      st = statSync(full);
+    } catch {
+      blockers.push(entry);
+      continue;
+    }
+    if (st.isDirectory()) {
+      if (ALLOWED_DIR_RE.test(entry)) continue;
+      // 空 src/、app/ 这类已建好的空目录放行；有内容的目录视为用户文件
+      if (readdirSync(full).length === 0 && /^(src|app|pages|public)$/i.test(entry)) continue;
+      blockers.push(entry + '/');
+    } else if (st.isFile()) {
+      if (ALLOWED_FILE_RE.test(entry)) continue;
+      blockers.push(entry);
+    } else {
+      blockers.push(entry);
+    }
+  }
+  return { clean: blockers.length === 0, blockers };
 }
 
 export function scaffoldBlueprint(input: ScaffoldInput, combos: Combo[]): ScaffoldOutcome {
@@ -47,19 +79,21 @@ export function scaffoldBlueprint(input: ScaffoldInput, combos: Combo[]): Scaffo
   }
   const root = resolve(ws);
   if (existsSync(root)) {
-    let st: { isDirectory: () => boolean };
+    let st: { isDirectory: () => boolean; isFile: () => boolean };
     try {
       st = statSync(root);
     } catch (e) {
       return { ok: false, error: `workspace_path 无法读取：${String((e as Error)?.message ?? e).slice(0, 120)}` };
     }
     if (!st.isDirectory()) return { ok: false, error: `workspace_path 已存在且不是目录：${root}` };
-    if (hasMeaningfulFiles(root)) {
+    const { clean, blockers } = isCleanWorkspace(root);
+    if (!clean) {
       return {
         ok: false,
         error:
-          `目录非空，拒绝写入（脚手架永不覆盖用户文件）：${root}\n` +
-          '要往已有项目里写架构规范，请改用 apply_stack_blueprint（幂等更新规则文件，不碰其他文件）。',
+          `目录里已有这些内容，拒绝写入（脚手架永不覆盖用户文件）：${root}\n` +
+          `  ${blockers.slice(0, 8).join('、')}${blockers.length > 8 ? '…' : ''}\n` +
+          '含 package.json 或用户源码的目录不视为干净。要往既有项目写架构规范，请改用 apply_stack_blueprint（幂等更新规则文件，不碰其他文件）。',
       };
     }
   } else {

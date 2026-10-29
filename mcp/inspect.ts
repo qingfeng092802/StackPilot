@@ -107,9 +107,12 @@ export function inspectProject(input: InspectInput, combos: Combo[]): InspectOut
     }
   }
 
-  // ── 3. 对 12 套组合打"接近分"：先比命中数，再比命中率，最后比缺口数 ──
-  // 为什么不是纯命中率：小组合（如 C05 基线只有 5 个包）靠分母小占便宜，
-  // 会把"装了 7 个正确包"的大项目压下去。命中数才是"你有多少蓝图要求的东西"。
+  // ── 3. 对 12 套组合打"接近分"：**对称差**升序（多出的 + 缺失的），同分看命中率 ──
+  // 两个历史教训，都钉在排序键上：
+  //   纯命中率 → 小组合（C05 基线 5 包）靠分母小占便宜；
+  //   纯命中数 → 大组合（C01 基线 9 包）天然压人，且"多装 Redis"和"缺一个包"
+  //   分不出轻重。对称差 = 多 + 缺，同时度量两头偏离，且不随组合大小漂移：
+  //   "多 1 缺 1"（差 2）排到"只缺 2"（差 2）同分，但排在"多 0 缺 1"（差 1）之后。
   const scored = combos
     .map((c) => {
       const base = baselinePackagesOf(c);
@@ -117,9 +120,9 @@ export function inspectProject(input: InspectInput, combos: Combo[]): InspectOut
       for (const pkg of base.keys()) if (deps.has(pkg)) hit++;
       const miss = [...base.keys()].filter((p) => !deps.has(p));
       const extra = [...deps].filter((p) => !base.has(p));
-      return { combo: c, base, hit, hitRate: base.size ? hit / base.size : 0, miss, extra };
+      return { combo: c, base, hit, hitRate: base.size ? hit / base.size : 0, miss, extra, symDiff: miss.length + extra.length };
     })
-    .sort((a, b) => b.hit - a.hit || b.hitRate - a.hitRate || a.miss.length - b.miss.length);
+    .sort((a, b) => a.symDiff - b.symDiff || b.hitRate - a.hitRate || a.miss.length - b.miss.length);
 
   const top = scored[0];
   const lines: string[] = [];
@@ -155,7 +158,7 @@ export function inspectProject(input: InspectInput, combos: Combo[]): InspectOut
   function emitClosest(out: string[], t: (typeof scored)[number], name: string) {
     out.push(`# 反查：${name}`);
     out.push('');
-    out.push(`> 最接近的蓝图：**${t.combo.id} ${t.combo.name}**（组件包命中 ${t.hit}/${t.base.size}）。读取的文件：${read.join('、') || '（无）'}`);
+    out.push(`> 最接近的蓝图：**${t.combo.id} ${t.combo.name}**（组件包命中 ${t.hit}/${t.base.size}，对称差 ${t.symDiff}：缺 ${t.miss.length} + 多 ${t.extra.length}）。读取的文件：${read.join('、') || '（无）'}`);
     out.push('');
     if (t.miss.length) {
       out.push('## 缺了这些（蓝图里有、项目里没有）');
