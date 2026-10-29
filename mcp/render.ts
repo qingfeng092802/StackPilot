@@ -28,8 +28,11 @@ const DELIVERY_CN: Record<string, string> = {
 };
 
 export interface ParseInfo {
-  /** llm = 模型抽取；rule = 无 key 时的关键词规则 */
-  mode: 'llm' | 'rule';
+  /**
+   * host = 宿主模型调用工具时直接传入了结构化约束（本地三道闸校验）；
+   * llm  = 服务端自配 key 走模型抽取；rule = 无 key 时的关键词规则
+   */
+  mode: 'host' | 'llm' | 'rule';
   /** 读到的东西（字段 → 值 ← 原文依据） */
   hits: Array<{ field: string; value: string; evidence: string }>;
   /** 缺失的字段 */
@@ -70,7 +73,11 @@ function parseSection(info: ParseInfo): string[] {
   const out: string[] = [];
   out.push('## 输入解读');
   out.push('');
-  if (info.mode === 'rule') {
+  if (info.mode === 'host') {
+    out.push('> 解析方式：**宿主模型结构化传入**（你调用工具时直接给了 `extracted_constraints`），');
+    out.push('> 本地已逐字段做过 evidence 逐字溯源与极性校验，未通过的字段已丢弃。零模型成本。');
+    out.push('');
+  } else if (info.mode === 'rule') {
     out.push('> ⚠️ 当前没有配置 `ANTHROPIC_API_KEY`，用的是**关键词规则**解析：');
     out.push('> 只认明确说出口的词，读不出的字段会留空并按默认值处理。配置 key 后可用模型解析，准确率更高。');
     out.push('');
@@ -126,6 +133,9 @@ export function renderRecommendation(input: RenderInput): string {
   out.push(`> ${pkg.one_pager?.headline ?? top1.name}`);
   out.push('>');
   out.push(`> 置信度 **${result.confidence}**　·　分数 ${top1.score.toFixed(2)}　·　候选 ${result.candidateCount} 套`);
+  if ((combo as any).last_reviewed) {
+    out.push(`> 最近复核于 ${(combo as any).last_reviewed}（技术栈时效性由人工审核维护）`);
+  }
   if (result.confidence !== 'high' && result.confidence_warning) {
     out.push(`>`);
     out.push(`> ⚠️ ${result.confidence_warning}`);
@@ -168,11 +178,15 @@ export function renderRecommendation(input: RenderInput): string {
 
   out.push('## 给 AI 的启动指令');
   out.push('');
-  out.push('直接复制下面这段，粘到 Cursor / Claude Code 里：');
+  out.push('直接复制下面这段，粘到 Cursor / Claude Code 里；或者让 AI 调用 `apply_stack_blueprint` 工具一键落盘（见下方提示）：');
   out.push('');
   out.push('```text');
   out.push(bootstrap);
   out.push('```');
+  out.push('');
+  out.push(`> 💡 **提示**：你可以直接让 AI 调用 \`apply_stack_blueprint\` 工具（传入组合 ID \`${top1.id}\`），`);
+  out.push('> 把上述架构规范与防坑指南一键写入当前项目的 `.cursor/rules/stackpilot.mdc` 和 `CLAUDE.md`，');
+  out.push('> 之后 AI 在这个项目里会自动遵守这套约束，无需再手动粘贴。');
   out.push('');
 
   if (pkg.next_three_steps?.length) {
@@ -205,6 +219,7 @@ export function renderDetailedPrompt(opts: {
 }): string {
   const out: string[] = [];
   out.push(`# ${opts.comboName}（${opts.comboId}）`);
+  if ((opts as any).lastReviewed) out.push(`\n> 最近复核于 ${(opts as any).lastReviewed}`);
   out.push('');
   out.push('## 给 AI 的启动指令');
   out.push('');

@@ -35,8 +35,12 @@ function stepsOf(ctx: ExplainContext): ExplanationPackage['next_three_steps'] {
   const db = plain(c.db);
   const dp = plain(c.deploy);
 
+  // 小程序系（原生 / uni-app）没有"浏览器里看页面"这回事，效果只在开发者工具的模拟器里。
+  // 闭集 23 个组件里非浏览器的 FE 只有这两个，写死在这里即可，新组件进来时同步。
+  const localView = ['FE-05', 'FE-06'].includes(c.fe) ? '在开发者工具的模拟器里' : '在浏览器里';
+
   const first = {
-    action: `把 ${fe} 项目在本地跑起来，浏览器里看到默认页`,
+    action: `把 ${fe} 项目在本地跑起来，${localView}看到默认页`,
     minutes: 30,
     blocker: '版本不对导致的报错：先确认本机 Node / Python 版本和项目要求一致',
   };

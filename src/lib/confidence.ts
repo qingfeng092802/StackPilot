@@ -310,6 +310,7 @@ export const LOCAL_ONLY_KEYWORDS = [
   '只存本地', '存在本地', '存本地', '只存前端', '存前端',
   'localStorage', 'LocalStorage', 'localstorage',
   '不需要存', '不用存', '不需要保存', '不用保存',
+  '不存服务端', '不要服务端存储', '不用数据库', '不要数据库',
   '清缓存', '换个浏览器就没了',
 ] as const;
 

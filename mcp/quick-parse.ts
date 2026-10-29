@@ -93,6 +93,143 @@ function firstHit(text: string, kws: string[]): string | null {
   return null;
 }
 
+// ────────────────────────────────────────────────────────────
+// 中文数量解析（v2.0.0）
+//
+// 为什么敢在这层做数字了（注释里原来写着"不做"）：此前不做是因为没有
+// 确定性的换算规则。现在的实现把每一步换算都写成代码里的固定映射，
+// 与 intake/validate.ts 对数值字段的要求同构：可复算、可审计。
+//
+// 两条铁律：
+//   1. 只认"写出来就是数量"的形态（数字 + 单位 / 固定约数词），认不出就留空
+//   2. 约数词（十来个 / 几十 / 百八十）一律取**保守下界**并写进 assumed——
+//      低估用户量的代价（成本维度偏松）远小于高估（可能误触发万级硬排除）
+// ────────────────────────────────────────────────────────────
+
+const CN_DIGIT: Record<string, number> = { 零: 0, 〇: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+
+/**
+ * 中文数字 → 数值。支持标准读法到万级（十五万、一百二十、两千）。
+ * 口语省略读法（"两千五"=2500）不支持——解析成 2005 是错值，宁可留空。
+ * 不合法返回 null（调用方当没读到）。
+ */
+export function cnToInt(s: string): number | null {
+  const t = String(s ?? '').trim();
+  if (/^\d+$/.test(t)) return Number(t);
+  if (!t || !/^[零〇一二两三四五六七八九十百千万]+$/.test(t)) return null;
+  // 口语省略读法（"两千五"=2500、"百八十"≈80~120）不是标准读法，
+  // 标准算法会算出错值（2005 / 180），宁可拒绝留空。
+  if (/[千百][一二两三四五六七八九]$/.test(t)) return null;
+  if (/^百[一二两三四五六七八九十]{1,2}$/.test(t)) return null;
+
+  // 分段算法：unit（十百千）把 digit 乘上去累积进 section；万 结算一个段
+  let total = 0;
+  let section = 0;
+  let digit = -1; // -1 = 当前没有待挂到单位上的数字
+  for (const ch of t) {
+    if (CN_DIGIT[ch] !== undefined) {
+      digit = CN_DIGIT[ch];
+      continue;
+    }
+    if (ch === '十') { section += (digit < 0 ? 1 : digit) * 10; digit = -1; continue; }
+    if (ch === '百') { section += (digit < 0 ? 1 : digit) * 100; digit = -1; continue; }
+    if (ch === '千') { section += (digit < 0 ? 1 : digit) * 1000; digit = -1; continue; }
+    if (ch === '万') {
+      total = (total + section + Math.max(0, digit)) * 10000;
+      section = 0;
+      digit = -1;
+      continue;
+    }
+  }
+  const r = total + section + Math.max(0, digit);
+  return r > 0 ? r : null;
+}
+
+const CN_NUM = '[0-9]+|[零〇一二两三四五六七八九十百千]{1,8}';
+const num = (m: RegExpMatchArray) => cnToInt(m[1]);
+
+/** 明确的"数字 + 人用/用户"形态 → expected_users（这是读出来的，进 hits） */
+const USERS_RES: Array<{ re: RegExp; label: string }> = [
+  { re: new RegExp(`(?:大概|大约|预计|差不多|约)?\\s*(${CN_NUM})\\s*(?:个|位)?\\s*(?:人|用户|使用者)\\s*(?:来)?\\s*(?:用|使用|访问|注册|在线)`), label: '数字+人用' },
+  { re: new RegExp(`(?:用户|日活|月活|注册用户|使用者)(?:量|数)?\\s*(?:大约|大概|约|在)?\\s*(${CN_NUM})(?:\\s*(?:个|人|位))?`), label: '用户量+数字' },
+];
+
+/** 约数词 → 保守下界。命中进 assumed，不进 hits */
+const FUZZY_USERS: Array<[RegExp, number, string]> = [
+  [/十来个?(?:人|用户)?/, 10, '十来个 → 按下界 10 计'],
+  [/十几个人?/, 11, '十几个 → 按下界 11 计'],
+  [/几十个?(?:人|用户)?/, 20, '几十 → 按下界 20 计'],
+  [/百八十(?:个|人)?/, 80, '百八十 → 按下界 80 计'],
+  [/上百(?:个|人)?/, 100, '上百 → 按下界 100 计'],
+  [/上千(?:个|人)?/, 1000, '上千 → 按下界 1000 计'],
+  [/上万(?:个|人)?/, 10000, '上万 → 按下界 10000 计'],
+];
+
+/** 数字 + 时间单位 → timeline_weeks（换算写死在这里，可复算） */
+const TIMELINE_RE = new RegExp(`(${CN_NUM}|半)\\s*个?\\s*(天|日|周|星期|礼拜|月|年)`);
+
+/** 预算：只认"月/年"周期明确的形态。例外：金额为 0 无需周期（"预算 0"语义完整） */
+const BUDGET_RES: Array<{ re: RegExp; unit: 'month' | 'year'; label: string }> = [
+  { re: new RegExp(`每?个?月\\s*(?:的)?\\s*(?:预算|成本|服务|花销|花)?\\s*(?:不超过|最多|至多|以内)?\\s*(${CN_NUM})\\s*(?:块|元)?`), unit: 'month', label: '每月+数字' },
+  { re: /预算\s*0(?!\d)/, unit: 'month', label: '预算 0' },
+  { re: new RegExp(`(?:预算|成本)\\s*(${CN_NUM})\\s*(?:块|元)?\\s*(?:每个?月|一月|\\/月|每月)`), unit: 'month', label: '预算+数字/月' },
+  { re: new RegExp(`(${CN_NUM})\\s*(?:块|元)\\s*(?:每?个?月|一月|\\/月|每月)`), unit: 'month', label: '数字+元/月' },
+  { re: new RegExp(`(${CN_NUM})\\s*(?:块|元)\\s*(?:一?年)`), unit: 'year', label: '数字+元/年' },
+];
+
+interface NumParse {
+  value: number;
+  evidence: string;
+}
+
+function parseExpectedUsers(raw: string): { hit: NumParse | null; fuzzy: string | null } {
+  // 约数表必须**先于**明确数字查：否则「几十个人用」会被明确数字正则从中间
+  // 抽出「十个人用」读成 10，「百八十人」会被读成 180——都是错值。
+  // 约数模式（十来/十几/几十/百八十/上百…）和明确数字不重叠，先行不会误伤。
+  for (const [re, lower, note] of FUZZY_USERS) {
+    const m = raw.match(re);
+    if (m) return { hit: null, fuzzy: `${m[0]}：${note}` };
+  }
+  for (const { re, label } of USERS_RES) {
+    const m = raw.match(re);
+    if (m) {
+      const v = num(m as RegExpMatchArray);
+      if (v !== null && v > 0 && v <= 1e9) {
+        return { hit: { value: v, evidence: `${m[0]}（${label}）` }, fuzzy: null };
+      }
+    }
+  }
+  return { hit: null, fuzzy: null };
+}
+
+function parseTimelineWeeks(raw: string): NumParse | null {
+  const m = raw.match(TIMELINE_RE);
+  if (!m) return null;
+  const amount = m[1] === '半' ? 0.5 : cnToInt(m[1]);
+  if (amount === null || amount <= 0) return null;
+  const unit = m[2];
+  const weeks =
+    unit === '天' || unit === '日' ? Math.max(1, Math.round(amount / 7))
+    : unit === '周' || unit === '星期' || unit === '礼拜' ? Math.round(amount)
+    : unit === '月' ? Math.max(1, Math.round(amount * 4.345))
+    : Math.max(1, Math.round(amount * 52));
+  return { value: weeks, evidence: `${m[0]}（换算 ${weeks} 周）` };
+}
+
+function parseBudget(raw: string): NumParse | null {
+  for (const { re, unit, label } of BUDGET_RES) {
+    const m = raw.match(re);
+    if (m) {
+      const v = cnToInt(m[1]);
+      if (v !== null && v >= 0) {
+        const month = unit === 'month' ? v : Math.round(v / 12);
+        return { value: month, evidence: `${m[0]}（${label}，折合 ${month} 元/月）` };
+      }
+    }
+  }
+  return null;
+}
+
 export function quickParse(rawInput: string): QuickParseResult {
   const raw = String(rawInput ?? '');
   const lower = raw.toLowerCase();
@@ -166,12 +303,38 @@ export function quickParse(rawInput: string): QuickParseResult {
     if (k) { vector.team_size = val as any; hits.push({ field: 'team_size', value: val, evidence: k }); break; }
   }
 
-  /**
-   * 这一层**不做**的字段：timeline / budget / expected_users。
-   * 它们都要从数字里读，而中文数字（"十来个""几百人"）歧义太大，
-   * 猜错会直接影响成本维度。留给模型或追问。
-   */
+  // 数值字段（v2.0.0 起）：数字 + 单位的明确形态直接读；约数词取保守下界并进 assumed。
+  // 换算全部写死在代码里（周 = 1、月 = 4.345、年 = 52），与 intake/validate.ts 同一套口径。
+  const users = parseExpectedUsers(raw);
+  if (users.hit) {
+    vector.expected_users = users.hit.value;
+    hits.push({ field: 'expected_users', value: String(users.hit.value), evidence: users.hit.evidence });
+  } else if (users.fuzzy) {
+    vector.expected_users = (FUZZY_USERS.find(([re]) => re.test(raw))?.[1]) ?? null;
+    if (vector.expected_users !== null) {
+      assumed.push(`expected_users：${users.fuzzy}（约数按保守下界计）`);
+    }
+  }
+
+  const tl = parseTimelineWeeks(raw);
+  if (tl) {
+    vector.timeline_weeks = tl.value;
+    hits.push({ field: 'timeline_weeks', value: String(tl.value), evidence: tl.evidence });
+  }
+
+  const bg = parseBudget(raw);
+  if (bg) {
+    vector.budget_cny_month = bg.value;
+    hits.push({ field: 'budget_cny_month', value: String(bg.value), evidence: bg.evidence });
+  }
+
+  // 这一层仍不碰的字段：没有。delivery / ai_workflow 缺失时会在下面补默认值并进 assumed。
   const unknown = ['timeline_weeks', 'budget_cny_month', 'expected_users']
+    .filter((f) => {
+      if (f === 'timeline_weeks') return vector.timeline_weeks === null || vector.timeline_weeks === undefined;
+      if (f === 'budget_cny_month') return vector.budget_cny_month === null || vector.budget_cny_month === undefined;
+      return vector.expected_users === null || vector.expected_users === undefined;
+    })
     .concat(vector.delivery ? [] : ['delivery'])
     .concat(vector.ai_workflow ? [] : ['ai_workflow']);
 

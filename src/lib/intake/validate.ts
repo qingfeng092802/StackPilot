@@ -128,6 +128,12 @@ export interface IntakeParse {
   evidence: Record<string, string>;
   /** 被丢掉的字段及原因。dropped 越多，说明模型越想猜 */
   dropped: DroppedField[];
+  /**
+   * 跨字段矛盾提示（v2.1.0）。**提示型，不丢字段**——与 dropped 的区别：
+   * dropped 是"这个值没有出处，不能要"；warning 是"这些值各有出处，但放在一起可疑"，
+   * 该由用户确认而不是代码裁决。逐字溯源与极性闸门的行为不受影响。
+   */
+  warnings: string[];
 }
 
 const has = (text: string, kws: string[]) => kws.some((k) => text.includes(k));
@@ -146,6 +152,7 @@ export function parseIntake(raw: string, model: any): IntakeParse {
   const vector: ConstraintVector = {};
   const evidence: Record<string, string> = {};
   const dropped: DroppedField[] = [];
+  const warnings: string[] = [];
   const drop = (field: string, model_value: unknown, reason: string) =>
     dropped.push({ field, model_value: str(model_value), reason });
 
@@ -305,5 +312,14 @@ export function parseIntake(raw: string, model: any): IntakeParse {
     }
   }
 
-  return { vector, evidence, dropped };
+  // ── 跨字段矛盾提示（v2.1.0，只提示不丢——两条都是"各有出处但放在一起可疑"）──
+  // 只认两处确凿的矛盾，刻意保守：误报会让用户失去对"备注"的信任。
+  if (vector.compliance?.includes('payment') && Array.isArray(vector.required_capabilities) && !vector.required_capabilities.includes('payment')) {
+    warnings.push('compliance 里有 payment（资金结算）但 required_capabilities 里没有 payment 能力——支付合规通常意味着要接支付，请确认是否遗漏');
+  }
+  if (vector.delivery === 'selfhost' && vector.budget_cny_month === 0) {
+    warnings.push('delivery 是 selfhost（自己部署服务器/NAS）但每月预算为 0——自部署有固定成本（电费/带宽/硬件），请确认预算口径');
+  }
+
+  return { vector, evidence, dropped, warnings };
 }

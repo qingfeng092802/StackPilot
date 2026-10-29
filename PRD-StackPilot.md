@@ -1,10 +1,10 @@
-# PRD：StackPilot v1.0.0（MCP 主形态 · Vibe Coding 定位）
+# PRD：StackPilot v2.0.0（MCP 主形态 · 宿主算力借用 + 架构契约落盘）
 
 | 项 | 内容 |
 |---|---|
-| 文档版本 | **v1.0.0（MCP 交付版）** |
+| 文档版本 | **v2.0.0（工业可用版）** |
 | 日期 | 2026-10-24 |
-| 状态 | **核心引擎与 MCP 封装已完成**，进入发布与推广 |
+| 状态 | **v2.0.0：宿主结构化传入 / 注入防御 / 架构契约落盘 / stdio 加固** 全部落地 |
 | 前版 | v0.1 → StackScout → v0.2 → v0.3 → v0.4 → v0.4.3 → v0.4.4 |
 | 一句话定位 | 为**用 Cursor / Agent 写代码的人**，给出**架构定调 + 可核对的理由 + 一段能直接粘回对话的启动指令** |
 ---
@@ -58,10 +58,12 @@
 
 | 工具 | 输入 | 输出 |
 |---|---|---|
-| `recommend_stack` | `raw_input`：自然语言需求 | Markdown：Top1 + 为什么不选其他 + 启动指令 + 输入解读 |
+| `recommend_stack` | `raw_input`：自然语言需求；`extracted_constraints`（可选）：宿主模型提取的结构化约束，逐字段带 `evidence` | Markdown：Top1 + 为什么不选其他 + 启动指令 + 输入解读。低置信度时返回追问协议 |
 | `get_detailed_prompt` | `combo_id` + `user_requirements` | 指定技术栈的启动指令 |
+| `apply_stack_blueprint`（v2.0.0） | `combo_id` + `workspace_path`（绝对路径）+ `target_ide` | 把架构契约写入 `.cursor/rules/stackpilot.mdc` 与 `CLAUDE.md`（幂等），消灭复制粘贴 |
 
-**没有 API Key 也能用**：降级为关键词规则解析 + 模板文案（零成本、即时），
+**三级解析路由**：宿主传了 `extracted_constraints` → 本地三道闸直接用（路径 A，零模型成本，首选）；
+配了 `ANTHROPIC_API_KEY` → 内部 LLM 解析（路径 B）；都没有 → 关键词规则 + 中文数量映射（路径 C）。
 输出顶部标明走的是哪条路。这是采用率的命门——MCP 用户大多没配模型 key。
 
 ### 2.2 副形态：Web 调试台
@@ -182,7 +184,8 @@ total    = baseAvg × (0.55 + 0.45 × fit / 5)
 ## 5. 三阶段链路
 
 ```
-自然语言
+原始输入（宿主原话 / 结构化约束）
+  ├─ ⓪ 注入剥离（injection）── 高置信注入模式剥离 + 留痕；剥离后的文本是唯一解析基准
   ├─ ① 解析层（intake）── 抽取约束向量，每个字段必须能指回原文的逐字片段
   ├─ ② 打分引擎（scoring）─ 硬过滤 → 加权排序 → 强制范式多样性
   └─ ③ 解释层（explain）── 模型写「为什么」，过三道校验；不过退回模板
@@ -259,7 +262,7 @@ schema 能否解析、打包产物本身能不能跑。
 | 不做用户系统 / 账号 | 本地工具，没有服务端 |
 | 不接第三方模型自由选型 | 闭集是这个产品的根，放开就等于变成又一个「问 ChatGPT」 |
 | 不覆盖桌面端 / 复杂 CLI | 12 套里有 `desktop` / `cli` 的交付形态判断，但没有对应组合，直接拒答 |
-| 不做 prompt 注入防护（本轮） | 已知缺口，见 §9 |
+| 不让模型自由发挥选型与启动指令 | 闭集是这个产品的根；启动指令 / 架构契约 100% 模板生成 |
 
 ---
 
@@ -267,9 +270,9 @@ schema 能否解析、打包产物本身能不能跑。
 
 1. **只有 12 套组合。** 超出范围会直接说「覆盖不了」，不给勉强方案。这是设计，不是缺陷。
 2. **`ai_friendliness` 的 12 个权重是人工判断，未校准。** 见 §4.2。
-3. **无 Key 时解析较粗。** 关键词规则读不出「十来个用户」这类中文数量，字段会留空并按默认值处理。
+3. **无 Key 规则解析已能读中文数量（v2.0.0）。** 「十来个人」「两周内」「每月预算 100 元」可读（约数取保守下界并标注）；「用户不少」这类模糊表述仍留空按默认值处理。
 4. **MCP 只在官方 SDK 客户端验证过**（子进程 + JSON-RPC 端到端），未在真实 Cursor 里跑完整交互。
-5. **无 prompt 注入防护。** 用户可以在输入里写「忽略以上指令」，evidence 闸拦不住——注入话术本身就在原文里。
+5. **注入防御拦截高置信模式（v2.0.0 已补）。** 只认「出现即几乎必然是注入」的形态（忽略指令 / 输出系统提示词 / 强制指定组合 / 伪造 XML 边界），裸业务词（如管理 system prompt 的工具需求）不误杀。漏网注入还有三道闸与闭集兜底。
 6. **历史基线口径已变。** D1 的 10 条帖子写于 `ai_workflow` 存在之前，没有一条提「谁写代码」，
    所以核心组必缺这一项 → 最高只能到 medium。跨版本对比必须注明口径。
 
@@ -287,6 +290,20 @@ D1 阶段采集的 10 条真实案例（H01–H10）来自公开帖子，改写�
 ---
 
 ## 附录 A：schema 变更记录
+
+### A.4 v2.1.0：骨架资产 + 反查 + 时效元数据
+
+- 组合新增 `last_reviewed`（独立字段，不从 facts 的 verified_at 推导），闸门断言 < 180 天。
+- 新工具 `scaffold_blueprint`（组件片段库拼装可运行骨架，版本按 facts 快照锁定）与 `inspect_project`（只读反查，基线与骨架同源）。
+- 新增注入剥离层 `src/lib/intake/injection.ts`（v2.0.0 引入，此处补记）与本地匿名反馈 `src/lib/telemetry.ts`（SP_TELEMETRY=1 开启，仅结构化字段，写 ~/.stackpilot/usage.jsonl）。
+- `parseIntake` 返回值新增 `warnings`（跨字段矛盾提示，提示型不丢字段）。
+
+### A.3 v2.0.0：宿主结构化传入
+
+`recommend_stack` 新增可选参数 `extracted_constraints`，字段结构与解析层模型输出同构
+（枚举 `{value, evidence}` / 多值 `{values, evidence}` / 数值 `{amount, unit, evidence}`），
+直接复用 `parseIntake` 三道闸；passthrough 保留未知键供 dropped 留痕。
+新增 `apply_stack_blueprint` 工具与注入剥离层（`src/lib/intake/injection.ts`）。
 
 > 下表的版本号是**数据层 `combos.json` 的里程碑**，与本文档的版本号是两条线，不要混读。
 
@@ -330,7 +347,7 @@ D1 阶段采集的 10 条真实案例（H01–H10）来自公开帖子，改写�
 | C04 | React SPA + Hono + SQLite 边缘轻量 | B | 4 |
 | C05 | Nuxt + Supabase 全栈托管（Vue 派） | C | 4 |
 | C06 | SvelteKit + SQLite 极简 | A | 3 |
-| C07 | 原生小程序 + 微信云开发 | D | 3 |
+| C07 | 原生小程序 + Supabase 托管后端 | D | 3 |
 | C08 | uni-app + Supabase 多端 | D | 3 |
 | C09 | Next.js + FastAPI + LangGraph 重编排 | B | 1 |
 | C10 | NestJS + Postgres + LangChain 企业向 | B | 2 |

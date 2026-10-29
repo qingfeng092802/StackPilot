@@ -18,10 +18,14 @@ import type { LLMProvider } from '../explain/provider.ts';
 import { buildIntakePrompt, INTAKE_SYSTEM_PROMPT } from './prompt.ts';
 import { parseIntake } from './validate.ts';
 import type { DroppedField } from './validate.ts';
+import { stripInjections } from './injection.ts';
+import type { InjectionFinding } from './injection.ts';
 
 export * from './prompt.ts';
 export { parseIntake, isQuoted, normEv } from './validate.ts';
+export { stripInjections, detectInjection } from './injection.ts';
 export type { DroppedField, IntakeParse } from './validate.ts';
+export type { InjectionFinding } from './injection.ts';
 
 export interface IntakeOption {
   value: string;
@@ -204,7 +208,7 @@ export interface IntakeOptions {
 }
 
 export async function intake({ raw_input, provider, maxAttempts = 2 }: IntakeOptions): Promise<IntakeResult> {
-  const raw = String(raw_input ?? '').trim();
+  const raw0 = String(raw_input ?? '').trim();
   const empty: IntakeResult = {
     ok: false,
     parsed: {},
@@ -218,7 +222,19 @@ export async function intake({ raw_input, provider, maxAttempts = 2 }: IntakeOpt
     notes: [],
   };
 
+  // 注入剥离：clean 是后续解析与 evidence 校验的唯一文本基准。
+  // 指向被剥片段的 evidence 会校验失败——预期行为，那段根本不是需求。
+  const { clean, findings } = stripInjections(raw0);
+  const raw = clean;
+  const injectionNotes = findings.map(
+    (f: InjectionFinding) => `检测到疑似注入指令（模式 ${f.pattern}）并已剥离：「${f.matched}」`
+  );
+
   if (raw.length < 4) {
+    // 剥完只剩注入的极端情况：不算解析失败，直接告诉调用方没有可用需求
+    if (findings.length) {
+      return { ...empty, notes: [...injectionNotes, '剥离注入片段后没有剩余可用需求'] };
+    }
     return { ...empty, failure: { stage: 'validate', detail: '描述太短，没法解析（至少写一句话）' } };
   }
 
@@ -265,7 +281,7 @@ export async function intake({ raw_input, provider, maxAttempts = 2 }: IntakeOpt
     return { ...empty, failure: { stage: 'parse', detail: `模型输出无法解析：${lastErr}` } };
   }
 
-  const { vector, evidence, dropped } = parseIntake(raw, modelJson);
+  const { vector, evidence, dropped, warnings } = parseIntake(raw, modelJson);
   const conf = computeConfidence(vector);
   const cov = coverageStatus(vector, raw);
   const missing = ASK_ORDER.filter((f) => !(f in evidence));
@@ -279,7 +295,7 @@ export async function intake({ raw_input, provider, maxAttempts = 2 }: IntakeOpt
       ? []
       : missing.filter((f) => QUESTIONS[f]).slice(0, MAX_QUESTIONS).map((f) => QUESTIONS[f]);
 
-  const notes: string[] = [];
+  const notes: string[] = [...injectionNotes, ...warnings];
   if (dropped.length) {
     notes.push(`有 ${dropped.length} 个字段模型填了但没被采纳，已丢弃：${[...new Set(dropped.map((d) => d.field))].join('、')}`);
   }

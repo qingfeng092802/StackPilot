@@ -19,7 +19,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
@@ -59,6 +59,31 @@ const r2 = spawnSync(mcpCmd, { cwd: root, stdio: 'inherit', shell: true });
 if (r2.status !== 0) {
   console.error('esbuild 打包失败（MCP server）');
   process.exit(1);
+}
+
+// 1.6 stdout 守卫注入：MCP 用 stdio 传 JSON-RPC，任何第三方库的 console.log/info/warn
+//     都会把协议流污染到断连，而客户端只会说"连接失败"。esbuild 的 banner 传多行
+//     带引号代码要过一层 cmd.exe 转义，太脆；改为构建后直接 prepend 到 shebang 之后。
+//     server.ts 源码顶部也有一份（源码直跑 / tsx 场景），两处逻辑一致。
+const guardCode = [
+  '/* SP_STDOUT_GUARD_INJECTED —— 注入于构建期：stdout 专供 JSON-RPC，console 输出一律改道 stderr */',
+  "for (const m of ['log', 'info', 'warn', 'debug']) {",
+  '  console[m] = function () {',
+  "    const parts = ['[stdout-guard]'];",
+  '    for (let i = 0; i < arguments.length; i++) parts.push(String(arguments[i]));',
+  "    process.stderr.write(parts.join(' ') + '\\n');",
+  '  };',
+  '}',
+].join('\n');
+const mcpCode = readFileSync(mcpFile, 'utf8');
+// 用注入专用标记判断，不能用 [stdout-guard]（server.ts 源码里也有这个字符串，会误判成已注入）
+if (!mcpCode.includes('SP_STDOUT_GUARD_INJECTED')) {
+  const withGuard = mcpCode.replace(/^(#!\/usr\/bin\/env node\r?\n)/, `$1${guardCode}\n`);
+  if (withGuard === mcpCode) {
+    console.error('  ✗ 未能找到 shebang 行，stdout 守卫注入失败');
+    process.exit(1);
+  }
+  writeFileSync(mcpFile, withGuard);
 }
 
 // ── 红线自检：产物里绝不能出现疑似 API Key ────────────────────────

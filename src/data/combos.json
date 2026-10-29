@@ -131,7 +131,8 @@
           "https://supabase.com/docs"
         ],
         "pitfall_articles": []
-      }
+      },
+      "last_reviewed": "2026-10-30"
     },
     {
       "id": "C02",
@@ -216,7 +217,8 @@
           "https://www.postgresql.org/docs/"
         ],
         "pitfall_articles": []
-      }
+      },
+      "last_reviewed": "2026-10-30"
     },
     {
       "id": "C03",
@@ -293,7 +295,8 @@
           "https://react.dev/"
         ],
         "pitfall_articles": []
-      }
+      },
+      "last_reviewed": "2026-10-30"
     },
     {
       "id": "C04",
@@ -373,7 +376,8 @@
           "https://developers.cloudflare.com/"
         ],
         "pitfall_articles": []
-      }
+      },
+      "last_reviewed": "2026-10-30"
     },
     {
       "id": "C05",
@@ -433,7 +437,8 @@
           "https://supabase.com/docs"
         ],
         "pitfall_articles": []
-      }
+      },
+      "last_reviewed": "2026-10-30"
     },
     {
       "id": "C06",
@@ -537,11 +542,12 @@
           "https://developers.cloudflare.com/"
         ],
         "pitfall_articles": []
-      }
+      },
+      "last_reviewed": "2026-10-30"
     },
     {
       "id": "C07",
-      "name": "原生小程序 + 微信云开发",
+      "name": "原生小程序 + Supabase 托管后端",
       "one_liner": "只做微信内的小程序时，这是最短路径",
       "first_step": "装微信开发者工具，用 AppID 建一个空项目，看到模拟器里的默认页",
       "first_step_minutes": 20,
@@ -595,13 +601,13 @@
           "field": "expected_users",
           "op": "gt",
           "value": 10000,
-          "reason": "云开发配额在万级用户后成本陡增"
+          "reason": "Supabase 免费档配额有限，万级活跃用户后费用陡增"
         }
       ],
       "beginner_pitfalls": [
         "小程序需要备案与类目审核，个人主体很多类目不能做",
         "本地调试正常、真机预览白屏，通常是域名未加入白名单",
-        "云开发的数据库权限规则与 Supabase RLS 完全不同，容易混淆"
+        "Supabase 的表默认不开启 RLS，拿到 anon key 的任何人都能读写，上线前逐表把 RLS 配好"
       ],
       "when_to_leave": "当需要同时上 H5 或 App 时，换 C08",
       "evidence": {
@@ -609,7 +615,8 @@
           "https://developers.weixin.qq.com/miniprogram/dev/framework/"
         ],
         "pitfall_articles": []
-      }
+      },
+      "last_reviewed": "2026-10-30"
     },
     {
       "id": "C08",
@@ -672,7 +679,8 @@
           "https://supabase.com/docs"
         ],
         "pitfall_articles": []
-      }
+      },
+      "last_reviewed": "2026-10-30"
     },
     {
       "id": "C09",
@@ -755,7 +763,8 @@
           "https://fastapi.tiangolo.com/"
         ],
         "pitfall_articles": []
-      }
+      },
+      "last_reviewed": "2026-10-30"
     },
     {
       "id": "C10",
@@ -843,7 +852,8 @@
           "https://js.langchain.com/docs/"
         ],
         "pitfall_articles": []
-      }
+      },
+      "last_reviewed": "2026-10-30"
     },
     {
       "id": "C11",
@@ -957,7 +967,8 @@
           "https://developers.cloudflare.com/pages/functions/"
         ],
         "pitfall_articles": []
-      }
+      },
+      "last_reviewed": "2026-10-30"
     },
     {
       "id": "C12",
@@ -1086,7 +1097,8 @@
           "https://developers.cloudflare.com/pages/"
         ],
         "pitfall_articles": []
-      }
+      },
+      "last_reviewed": "2026-10-30"
     }
   ]
 }

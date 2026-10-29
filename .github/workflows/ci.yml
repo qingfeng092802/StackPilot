@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # 零外部依赖设计：npm test 与 mcp:smoke 都强制无 key 环境，
+    # CI 不需要任何 secret。P1 的 eval harness 跑在本地（需 key），不进 CI。
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: npm run mcp:smoke
+      # 凭据红线在构建期已强制（build.mjs 自检），这里再显式断言一次产物干净
+      - name: 凭据红线
+        run: node -e "
+          const fs = require('fs');
+          const code = fs.readFileSync('build/mcp.js', 'utf8') + fs.readFileSync('build/server.js', 'utf8');
+          if (/sk-[A-Za-z0-9_-]{16,}/.test(code)) { console.error('产物泄漏疑似 key'); process.exit(1); }
+          console.log('产物凭据检查通过');
+          "
