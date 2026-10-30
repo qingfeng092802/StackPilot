@@ -34,7 +34,7 @@
 ### 验收断言
 
 - 每套组合可拼装；package.json 可 JSON.parse；所有依赖版本能在 facts 快照中溯源（`test-scaffold.ts`）。
-- 本地抽查真实可跑：C12（最简单）与 C01（最常用）执行 `npm install && npm run build` 通过。
+- 本地抽查真实可跑：C12（最简单）与 C01（最常用）执行 `npm install && npm run build` 通过。**【2026-10-30 实跑达成】C01 于 Windows（npmmirror 源）install 328 包 + next build 通过；C12 于 eval 管线中 AI 生成项目两轮 install+build 通过。实跑同时抓到并修复 scaffold 落盘的 Windows 路径 bug（dirname 而非 lastIndexOf('/')）。**
 - 拼装器输出可复现：同一 combo 两次拼装逐字节一致（写入测试）。
 - `scaffold_blueprint` 拒绝非空目录（防覆盖用户文件）；拒绝闭集外 combo_id。
 

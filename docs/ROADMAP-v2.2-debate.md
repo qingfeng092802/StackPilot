@@ -66,7 +66,11 @@
 红线守卫：区块 100% 由 `debate` 字段模板渲染，无任何模型参与；旧数据无 `debate` 字段时整块跳过（向后兼容）。
 断言：test-view-model + test-registry 两层验证输出包含区块标题；无 debate 数据不产生空区块。
 
-## V2.2-3 · 离线多 Agent 法庭（✅ 管道落地，真实辩论等 key）
+## V2.2-3 · 离线多 Agent 法庭（⛔ 2026-10-30 封存至 scripts/experimental/，实验性非主流程）
+
+> **产品裁决**：对 12 套闭集的静态数据，五角色三阶段是过度工程——debate 字段由单次 Prompt + 人工撰写覆盖即可。
+> 本节保留为设计存档。仍有真实价值的部分：integrator 的 npm registry 检查并入 eval/facts 管线；
+> **ai_friendliness 校准的唯一正统路径是骨架实跑（eval-scaffold）**，不是 LLM 互辩。
 
 `scripts/debate-court.ts`——三阶段对抗流程，产出人工复核材料（`src/data/candidates-pending/debate-results.json`）：
 

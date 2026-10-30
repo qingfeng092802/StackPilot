@@ -10,6 +10,7 @@
  */
 
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { isAbsolute, join, resolve } from 'node:path';
 
 import type { Combo } from '../src/lib/scoring.ts';
@@ -114,7 +115,10 @@ export function scaffoldBlueprint(input: ScaffoldInput, combos: Combo[]): Scaffo
   try {
     for (const f of plan.files) {
       const target = join(root, f.path);
-      mkdirSync(target.slice(0, target.lastIndexOf('/')) || root, { recursive: true });
+      // 必须用 path.dirname：Windows 下 join 产生反斜杠，lastIndexOf('/') 会 miss，
+      // slice(0,-1) 会把文件名掐掉最后一个字符建成怪目录（applayout.ts 目录、.gitignor 目录）——
+      // 该 bug 只有 Windows 实跑才暴露，v2.2.1 修复
+      mkdirSync(dirname(target), { recursive: true });
       writeFileSync(target, f.content, 'utf8');
     }
   } catch (e) {

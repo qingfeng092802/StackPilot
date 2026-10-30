@@ -15,7 +15,8 @@
  *   npx tsx scripts/eval-scaffold.ts --combo C01 --model deepseek-flash [--rounds 3] [--build]
  */
 
-import { appendFileSync, existsSync, mkdirSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 
 import combosRaw from '../src/data/combos.json' with { type: 'json' };
@@ -75,13 +76,18 @@ async function generateProject(provider: LLMProvider): Promise<{ files: Record<s
     '你是代码生成器。按下面的项目启动指令，输出完整的项目文件。',
     '只输出一个 JSON 对象：{"files": {"<相对路径>": "<完整文件内容>"}}，不要 markdown 围栏、不要解释。',
     '必须包含 package.json（dependencies 带精确版本）与项目入口文件；不要 node_modules、不要 lock 文件。',
+    '所有文件保持**最小可运行**：不要长注释、不要示例数据、不要内嵌 SVG/图标/样式表，能一行绝不多行——输出预算有限，超限截断等于零分。',
     '',
     '=== 项目启动指令 ===',
     bootstrap,
   ].join('\n');
   const res = await provider.complete({ system: '你是严格遵循技术栈约束的代码生成器。禁止引入启动指令清单之外的服务。', user: prompt });
   const json = extractJson(res.text);
-  if (!json) throw new Error('模型输出里没有 JSON');
+  if (!json) {
+    // 失败留痕：截断/围栏/空输出必须能区分，否则每次都要人肉诊断
+    const diag = { stopReason: res.stopReason, hadThinking: res.hadThinking, usage: res.usage, head: res.text.slice(0, 200), tail: res.text.slice(-300) };
+    throw new Error('模型输出里没有 JSON｜诊断: ' + JSON.stringify(diag).slice(0, 1500));
+  }
   const parsed = JSON.parse(json);
   return { files: parsed.files ?? {}, raw: res.text };
 }
@@ -117,7 +123,6 @@ function scoreAgainstBaseline(files: Record<string, string>) {
 }
 
 function runBuild(dir: string): { ok: boolean; detail: string } {
-  const { spawnSync } = require('node:child_process') as typeof import('node:child_process');
   const r1 = spawnSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir, encoding: 'utf8', shell: true, timeout: 300000 });
   if (r1.status !== 0) return { ok: false, detail: `npm install 失败：${(r1.stderr || '').slice(0, 200)}` };
   const r2 = spawnSync('npm', ['run', 'build'], { cwd: dir, encoding: 'utf8', shell: true, timeout: 300000 });
