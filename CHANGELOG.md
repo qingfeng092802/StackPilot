@@ -2,6 +2,16 @@
 
 所有显著变更记录在本文件。格式参考 Keep a Changelog；版本遵循 SemVer。
 
+## [2.2.0] - 2026-10-30
+
+### 新增（多 Agent 对抗式生成与红队裁决，见 docs/ROADMAP-v2.2-debate.md）
+- **combos.json 新增 debate 字段**（12 套全部落位）：proponents（代言本组合真实组件）、red_team_warnings（红队警告，定性为主）、plan_b（翻车触发条件 + 闭集内平替）。首版 author=manual 人工撰写，待法庭真实辩论复核后替换。
+- **渲染层「⚖️ 红队质疑与辩护」区块**：recommend_stack 与 get_detailed_prompt 输出均挂载，100% 模板确定性渲染，无 debate 数据向后兼容跳过。打破顺从性偏见——用户拿到的是"这套方案在什么情况下会死、死了换哪套"。
+- **离线多 Agent 法庭**（scripts/debate-court.ts）：Phase1 五角色独立深挖（禁通信）→ Phase2 mailbox 辩论（1-2 轮）→ Phase3 Lead 裁决。集成评估师**真实接入 npm registry**（无需 key，实跑抓到 next 16.4.2→16.4.3 快照漂移）；--mock 全管道确定性验证；--integrator-only 可在 key 到位前真跑。
+- **consistency 闸门 6 条**：author 可追溯 / 红队警告≥1 且≥12 字 / 禁 4 位以上数字 / 代言人只代言本组合组件 / plan_b 引用闭集 / trigger 非模板话术。
+- 争议模式动态路由（提案第 5 节）按原方案标注 P2+ 不实现，记 ROADMAP 待办。
+- 测试：十套回归（test-registry 增至 35 断言，含红队区块端到端 + 纯函数断言）。
+
 ## [2.1.1] - 2026-10-30
 
 ### 修复

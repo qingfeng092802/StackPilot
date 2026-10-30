@@ -1,0 +1,255 @@
+{
+  "generated_note": "多 Agent 法庭产出，人工复核后才可写入 combos.json（author 改为 debate-court@<批次>）",
+  "combos": {
+    "C12": {
+      "generated_at": "2026-10-30T15:14:28.195Z",
+      "model": "mock",
+      "rounds": 1,
+      "latency_ms": 2,
+      "phase1": {
+        "proponent_framework": {
+          "argument": "[mock] proponent_framework 维度的辩护：该组合在其维度上有具体机制层面的优势，此处为管道验证用的脚本化输出。"
+        },
+        "proponent_data": {
+          "argument": "[mock] proponent_data 维度的辩护：该组合在其维度上有具体机制层面的优势，此处为管道验证用的脚本化输出。"
+        },
+        "proponent_devex": {
+          "argument": "[mock] proponent_devex 维度的辩护：该组合在其维度上有具体机制层面的优势，此处为管道验证用的脚本化输出。"
+        },
+        "red_team": {
+          "warnings": [
+            "[mock] 平台锁定风险：SSR 与托管平台深度绑定，私有化需要重接运行时。",
+            "[mock] 免费档服务有休眠语义，演示首屏可能遭遇冷启动延迟。"
+          ]
+        },
+        "integrator": {
+          "summary": "[mock] registry 检查通过"
+        }
+      },
+      "registry_evidence": [
+        {
+          "package": "[mock]",
+          "data": {
+            "deprecated": null,
+            "peerDependencies": {}
+          }
+        }
+      ],
+      "mailbox": [
+        {
+          "round": 1,
+          "role": "proponent_framework",
+          "payload": {
+            "rebuttal": "[mock] 第 1 轮反驳：红队指出的问题在目标场景下可控，理由指向具体机制（管道验证输出）。"
+          }
+        },
+        {
+          "round": 1,
+          "role": "proponent_data",
+          "payload": {
+            "rebuttal": "[mock] 第 1 轮反驳：红队指出的问题在目标场景下可控，理由指向具体机制（管道验证输出）。"
+          }
+        },
+        {
+          "round": 1,
+          "role": "proponent_devex",
+          "payload": {
+            "rebuttal": "[mock] 第 1 轮反驳：红队指出的问题在目标场景下可控，理由指向具体机制（管道验证输出）。"
+          }
+        },
+        {
+          "round": 1,
+          "role": "red_team",
+          "payload": {
+            "warnings": [
+              "[mock] 第 1 轮再挑刺：正方的规避方案本身有成本，且未回答部署语义的变化。"
+            ]
+          }
+        }
+      ],
+      "verdict": {
+        "ai_friendliness_suggested": 5,
+        "red_team_warnings": [
+          "[mock] 来自法庭裁决的警告一：平台锁定类风险，触发条件见 plan_b。",
+          "[mock] 警告二：运行时语义限制，定性描述。"
+        ],
+        "plan_b": {
+          "trigger": "出现登录、支付、服务端存储中的任何一个需求",
+          "alternative_combo": "C01"
+        },
+        "notes": "[mock] 裁决为管道验证输出，ai_friendliness 建议直接沿用现值。"
+      }
+    },
+    "C07": {
+      "generated_at": "2026-10-30T15:14:28.474Z",
+      "model": "mock",
+      "rounds": 2,
+      "latency_ms": 2,
+      "phase1": {
+        "proponent_framework": {
+          "argument": "[mock] proponent_framework 维度的辩护：该组合在其维度上有具体机制层面的优势，此处为管道验证用的脚本化输出。"
+        },
+        "proponent_data": {
+          "argument": "[mock] proponent_data 维度的辩护：该组合在其维度上有具体机制层面的优势，此处为管道验证用的脚本化输出。"
+        },
+        "proponent_devex": {
+          "argument": "[mock] proponent_devex 维度的辩护：该组合在其维度上有具体机制层面的优势，此处为管道验证用的脚本化输出。"
+        },
+        "red_team": {
+          "warnings": [
+            "[mock] 平台锁定风险：SSR 与托管平台深度绑定，私有化需要重接运行时。",
+            "[mock] 免费档服务有休眠语义，演示首屏可能遭遇冷启动延迟。"
+          ]
+        },
+        "integrator": {
+          "summary": "[mock] registry 检查通过"
+        }
+      },
+      "registry_evidence": [
+        {
+          "package": "[mock]",
+          "data": {
+            "deprecated": null,
+            "peerDependencies": {}
+          }
+        }
+      ],
+      "mailbox": [
+        {
+          "round": 1,
+          "role": "proponent_framework",
+          "payload": {
+            "rebuttal": "[mock] 第 1 轮反驳：红队指出的问题在目标场景下可控，理由指向具体机制（管道验证输出）。"
+          }
+        },
+        {
+          "round": 1,
+          "role": "proponent_data",
+          "payload": {
+            "rebuttal": "[mock] 第 1 轮反驳：红队指出的问题在目标场景下可控，理由指向具体机制（管道验证输出）。"
+          }
+        },
+        {
+          "round": 1,
+          "role": "proponent_devex",
+          "payload": {
+            "rebuttal": "[mock] 第 1 轮反驳：红队指出的问题在目标场景下可控，理由指向具体机制（管道验证输出）。"
+          }
+        },
+        {
+          "round": 1,
+          "role": "red_team",
+          "payload": {
+            "warnings": [
+              "[mock] 第 1 轮再挑刺：正方的规避方案本身有成本，且未回答部署语义的变化。"
+            ]
+          }
+        },
+        {
+          "round": 2,
+          "role": "proponent_framework",
+          "payload": {
+            "rebuttal": "[mock] 第 2 轮反驳：红队指出的问题在目标场景下可控，理由指向具体机制（管道验证输出）。"
+          }
+        },
+        {
+          "round": 2,
+          "role": "proponent_data",
+          "payload": {
+            "rebuttal": "[mock] 第 2 轮反驳：红队指出的问题在目标场景下可控，理由指向具体机制（管道验证输出）。"
+          }
+        },
+        {
+          "round": 2,
+          "role": "proponent_devex",
+          "payload": {
+            "rebuttal": "[mock] 第 2 轮反驳：红队指出的问题在目标场景下可控，理由指向具体机制（管道验证输出）。"
+          }
+        },
+        {
+          "round": 2,
+          "role": "red_team",
+          "payload": {
+            "warnings": [
+              "[mock] 第 2 轮再挑刺：正方的规避方案本身有成本，且未回答部署语义的变化。"
+            ]
+          }
+        }
+      ],
+      "verdict": {
+        "ai_friendliness_suggested": 3,
+        "red_team_warnings": [
+          "[mock] 来自法庭裁决的警告一：平台锁定类风险，触发条件见 plan_b。",
+          "[mock] 警告二：运行时语义限制，定性描述。"
+        ],
+        "plan_b": {
+          "trigger": "你要同时上 H5 或 App（一套代码多端）",
+          "alternative_combo": "C08"
+        },
+        "notes": "[mock] 裁决为管道验证输出，ai_friendliness 建议直接沿用现值。"
+      }
+    },
+    "C01": {
+      "registry_evidence_only": {
+        "generated_at": "2026-10-30T15:15:04.897Z",
+        "reports": [
+          {
+            "package": "@supabase/supabase-js",
+            "data": {
+              "version": "2.118.0",
+              "deprecated": null,
+              "peerDependencies": {
+                "@opentelemetry/api": ">=1.0.0"
+              },
+              "engines": {
+                "node": ">=22.0.0"
+              }
+            }
+          },
+          {
+            "package": "ai",
+            "data": {
+              "version": "7.0.157",
+              "deprecated": null,
+              "peerDependencies": {
+                "zod": "^3.25.76 || ^4.1.8"
+              },
+              "engines": {
+                "node": ">=22"
+              }
+            }
+          },
+          {
+            "package": "next",
+            "data": {
+              "version": "16.4.3",
+              "deprecated": null,
+              "peerDependencies": {
+                "sass": "^1.3.0",
+                "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+                "react-dom": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0",
+                "@playwright/test": "^1.51.1",
+                "@opentelemetry/api": "^1.1.0",
+                "babel-plugin-react-compiler": "*"
+              },
+              "engines": {
+                "node": ">=20.9.0"
+              }
+            }
+          },
+          {
+            "package": "vercel",
+            "data": {
+              "version": "65.8.0",
+              "deprecated": null,
+              "peerDependencies": {},
+              "engines": {
+                "node": ">= 20"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

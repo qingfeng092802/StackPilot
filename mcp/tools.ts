@@ -22,7 +22,7 @@ import { buildExplainContext, explain } from '../src/lib/explain/index.ts';
 import { buildFallback } from '../src/lib/explain/fallback.ts';
 import { buildAiBootstrapPrompt, buildDetailedPrompt } from '../src/lib/explain/bootstrap.ts';
 import { quickParse } from './quick-parse.ts';
-import { renderRecommendation, renderDetailedPrompt } from './render.ts';
+import { renderRecommendation, renderDetailedPrompt, renderDebateSection } from './render.ts';
 import type { ParseInfo } from './render.ts';
 import { applyBlueprint } from './blueprint.ts';
 import { scaffoldBlueprint } from './scaffold.ts';
@@ -39,7 +39,7 @@ function isLlmEnabled(): boolean {
 }
 const MODEL = process.env.ANTHROPIC_MODEL ?? 'deepseek-flash';
 
-export const VERSION = '2.1.1';
+export const VERSION = '2.2.0';
 
 /** 日志一律走 stderr —— stdout 留给 JSON-RPC */
 export function log(...args: unknown[]) {
@@ -297,7 +297,7 @@ export async function recommendStack(rawInput: string, extracted?: ExtractedCons
     pitfalls: (pkg.pitfalls ?? []).map((p: any) => p.text),
   });
 
-  return renderRecommendation({ result, combo, pkg, bootstrap, parse, rawInput: raw });
+  return renderRecommendation({ result, combo, pkg, bootstrap, parse, rawInput: raw, combos });
 }
 
 function detailedPrompt(comboId: string, userRequirements: string): string {
@@ -315,7 +315,7 @@ function detailedPrompt(comboId: string, userRequirements: string): string {
     ].join('\n');
   }
   const prompt = buildDetailedPrompt(combo, userRequirements ?? '');
-  return renderDetailedPrompt({
+  const base = renderDetailedPrompt({
     comboName: combo.name,
     comboId: combo.id,
     prompt,
@@ -323,6 +323,8 @@ function detailedPrompt(comboId: string, userRequirements: string): string {
     firstStep: combo.first_step ?? '',
     lastReviewed: (combo as any).last_reviewed,
   });
+  // ⚖️ 红队区块同样适用于指定组合的场景（v2.2.0）
+  return [base, ...renderDebateSection(combo, combos)].join('\n');
 }
 
 // ────────────────────────────────────────────────────────────

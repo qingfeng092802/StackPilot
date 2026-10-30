@@ -13,6 +13,7 @@
  */
 
 import { buildToolTools } from '../mcp/tools.ts';
+import combosRaw from '../src/data/combos.json' with { type: 'json' };
 
 // registry 测试必须确定性：抹掉 shell 里可能存在的（哪怕失效的）key，
 // 强制路径 A/C。isLlmEnabled() 是运行时求值，这里删除即可生效。
@@ -87,11 +88,32 @@ group('四、最小合法输入端到端（无 key → 路径 C，确定性）')
   const rec = await recH({ raw_input: '我想做个记账的小程序，我自己一个人做' });
   const text = rec.content[0].text;
   ok('recommend 正常出方案', !rec.isError && text.startsWith('# 推荐：'), text.slice(0, 120));
+  // ⚖️ 红队区块（v2.2.0 验收：渲染输出必须包含）
+  ok('输出含红队质疑与辩护区块', text.includes('⚖️ 红队质疑与辩护'), 'no debate section');
+  ok('红队警告有实际内容（非空标题）', /为什么可能是错的（红队警告）：/.test(text) && text.includes('- '));
+  ok('Plan B 含触发条件与平替组合', text.includes('如果这套方案翻车了（Plan B）') && /左转 C\d{2}/.test(text));
   const detH = byName.get('get_detailed_prompt')!.handler;
   const det = await detH({ combo_id: 'C12', user_requirements: '测试' });
-  ok('detailed 正常返回', det.content[0].text.includes('C12'));
+  ok('detailed 正常返回且含红队区块', det.content[0].text.includes('C12') && det.content[0].text.includes('⚖️'));
   const bad = await detH({ combo_id: 'C99', user_requirements: '测试' });
   ok('不存在的组合给提示而非报错', !bad.isError && bad.content[0].text.includes('没有 C99'));
+}
+
+group('五、renderDebateSection 纯函数：确定性渲染 + 向后兼容（v2.2.0）');
+{
+  const { renderDebateSection } = await import('../mcp/render.ts');
+  const combos: any[] = (combosRaw as any).combos;
+  const c01 = combos.find((c) => c.id === 'C01');
+  const lines = renderDebateSection(c01, combos);
+  const md = lines.join('\n');
+  ok('有 debate 数据：输出红队标题', md.includes('⚖️ 红队质疑与辩护'));
+  ok('每条警告逐条渲染', c01.debate.red_team_warnings.every((w: string) => md.includes(w)));
+  ok('Plan B 渲染组合名', md.includes(`左转 ${c01.debate.plan_b.alternative_combo}`));
+  // 向后兼容：无 debate 的旧数据整块跳过
+  const legacy = { ...c01, debate: undefined };
+  ok('无 debate 数据返回空数组（不渲染空区块）', renderDebateSection(legacy, combos).length === 0);
+  // 确定性：两次渲染逐字节一致
+  ok('两次渲染逐字节一致', JSON.stringify(renderDebateSection(c01, combos)) === JSON.stringify(lines));
 }
 
 console.log(`\n=== ${pass} 通过 / ${fail} 失败 ===`);

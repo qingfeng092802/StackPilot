@@ -113,6 +113,41 @@ function parseSection(info: ParseInfo): string[] {
   return out;
 }
 
+/**
+ * 「⚖️ 红队质疑与辩护」区块（v2.2.0）。
+ *
+ * 数据来自 combos.json 的 debate 字段——全部由**离线**多 Agent 法庭（scripts/debate-court.ts）
+ * 生成或架构师人工撰写，运行时只做模板渲染，一个字不由模型现场发挥。
+ * 这是对抗「顺从性偏见」的产品出口：正方理由之外，用户拿到的是"这套方案在什么情况下会死、死了换哪套"。
+ *
+ * 无 debate 字段的旧数据整块跳过（向后兼容），绝不渲染空区块。
+ */
+export function renderDebateSection(combo: Combo, combos: Combo[]): string[] {
+  const d = (combo as any).debate;
+  if (!d) return [];
+  const out: string[] = [];
+  out.push('### ⚖️ 红队质疑与辩护');
+  out.push('');
+  if (Array.isArray(d.red_team_warnings) && d.red_team_warnings.length) {
+    out.push('**为什么可能是错的（红队警告）：**');
+    out.push('');
+    for (const w of d.red_team_warnings) out.push(`- ${w}`);
+    out.push('');
+  }
+  if (d.plan_b?.alternative_combo) {
+    const alt = combos.find((c) => c.id === d.plan_b.alternative_combo);
+    if (alt) {
+      out.push('**如果这套方案翻车了（Plan B）：**');
+      out.push('');
+      out.push(`- **触发条件**：${d.plan_b.trigger ?? '（未定义）'}`);
+      out.push(`- **平替方案**：左转 ${alt.id}（${alt.name}）`);
+      out.push('');
+    }
+  }
+  // 没有任何可渲染内容就不输出标题，避免出现空区块
+  return out.length > 2 ? out : [];
+}
+
 export interface RenderInput {
   result: RankResult;
   /** Top1 对应的组合原始定义（渲染技术栈要用 components） */
@@ -121,10 +156,12 @@ export interface RenderInput {
   bootstrap: string;
   parse: ParseInfo;
   rawInput: string;
+  /** 闭集全量（渲染 Plan B 的组合名用，v2.2.0） */
+  combos: Combo[];
 }
 
 export function renderRecommendation(input: RenderInput): string {
-  const { result, combo, pkg, bootstrap, parse, rawInput } = input;
+  const { result, combo, pkg, bootstrap, parse, rawInput, combos } = input;
   const top1 = result.top1;
   const out: string[] = [];
 
@@ -175,6 +212,9 @@ export function renderRecommendation(input: RenderInput): string {
     }
     out.push('');
   }
+
+  // ⚖️ 红队质疑与辩护（v2.2.0）：离线辩论的确定性渲染，挂在"为什么不选其他"之后
+  out.push(...renderDebateSection(combo, combos));
 
   out.push('## 给 AI 的启动指令');
   out.push('');

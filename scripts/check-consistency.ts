@@ -67,6 +67,24 @@ check('daysSince 跨日自检（UTC 今天 = 0 天，UTC 昨天 = 1 天）',
   daysSince(new Date().toISOString().slice(0, 10)) === 0 &&
   daysSince(new Date(Date.now() - 86400000).toISOString().slice(0, 10)) === 1);
 
+// ── v2.2.0：debate 字段（红队裁决沉淀，见 docs/ROADMAP-v2.2-debate.md）──
+// 数据来源必须可追溯：manual（架构师人工撰写）或 debate-court@<批次>（离线法庭产物经人工复核）
+check('每套组合都有 debate 且 author 可追溯', combos.every((c: any) =>
+  c.debate && (c.debate.author === 'manual' || /^debate-court@.+/.test(c.debate.author))));
+check('每套组合至少 1 条红队警告，且每条 ≥ 12 字（拒绝废话警告）', combos.every((c: any) =>
+  Array.isArray(c.debate.red_team_warnings) && c.debate.red_team_warnings.length >= 1
+  && c.debate.red_team_warnings.every((w: string) => w.length >= 12)));
+check('红队警告禁止 4 位以上数字（量化门槛必须有事实出处，与 test-guards 同一哲学）', combos.every((c: any) =>
+  c.debate.red_team_warnings.every((w: string) => !/\d{4,}/.test(w))));
+check('代言人只能代言本组合真实存在的组件', combos.every((c: any) => {
+  const ids = Object.values(c.components).filter(Boolean);
+  return (c.debate.proponents ?? []).every((p: any) => ids.includes(p.target) && (p.argument ?? '').length >= 12);
+}));
+check('plan_b.alternative_combo 在闭集内且不指向自身', combos.every((c: any) =>
+  combos.some((x: any) => x.id === c.debate.plan_b?.alternative_combo) && c.debate.plan_b.alternative_combo !== c.id));
+check('plan_b.trigger 非空且非模板话术', combos.every((c: any) =>
+  typeof c.debate.plan_b?.trigger === 'string' && c.debate.plan_b.trigger.length >= 10));
+
 console.log('\n=== 2. 权重表：不含 fit（v0.4.2 不变量）===');
 const weightKeys = Object.keys(WEIGHTS.assisted);
 check('权重维度为 5 个', weightKeys.length === 5, weightKeys.join(','));

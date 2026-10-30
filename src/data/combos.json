@@ -132,7 +132,30 @@
         ],
         "pitfall_articles": []
       },
-      "last_reviewed": "2026-10-29"
+      "last_reviewed": "2026-10-29",
+      "debate": {
+        "author": "manual",
+        "reviewed_at": "2026-10-29",
+        "proponents": [
+          {
+            "target": "FE-01",
+            "argument": "App Router 文件约定大于配置，目录即路由，AI 一次生成的结构基本不用改；且 React 语料最厚，AI 写错的概率全闭集最低。"
+          },
+          {
+            "target": "BE-06",
+            "argument": "Supabase 把鉴权、数据库、存储做成一个控制台，登录和 CRUD 的胶水代码量接近于零。"
+          }
+        ],
+        "red_team_warnings": [
+          "平台锁定：SSR 与边缘函数深度绑定 Vercel，将来要私有化部署时，等于把全栈框架重新接一遍自建运行时。",
+          "Supabase 免费档项目会因长时间无请求休眠，演示给用户看的第一屏可能等几十秒冷启动。",
+          "AI 生成的 Next 代码常混用 App Router 与旧 Pages Router 的写法，版本演进的语料断层会让新手无从判断对错。"
+        ],
+        "plan_b": {
+          "trigger": "你提出私有化部署、数据必须落在自己手里、或不接受平台锁定",
+          "alternative_combo": "C02"
+        }
+      }
     },
     {
       "id": "C02",
@@ -218,7 +241,29 @@
         ],
         "pitfall_articles": []
       },
-      "last_reviewed": "2026-10-29"
+      "last_reviewed": "2026-10-29",
+      "debate": {
+        "author": "manual",
+        "reviewed_at": "2026-10-29",
+        "proponents": [
+          {
+            "target": "FE-01",
+            "argument": "前后端同进程：接口就是 app/api 下的一个文件，没有跨服务联调，AI 改前后端只动一个仓库。"
+          },
+          {
+            "target": "DB-01",
+            "argument": "Postgres 的约束、事务、JSONB 都是完整的，业务复杂了也不用换库，迁移路径最长。"
+          }
+        ],
+        "red_team_warnings": [
+          "运维全自扛：备份、迁移、连接池、监控没有一样是白来的，\"自建\"两个字意味着这些坑都归你。",
+          "托管平台上的 Route Handlers 有执行时长与常驻内存限制，长任务（导出、批量处理）会被截断。"
+        ],
+        "plan_b": {
+          "trigger": "你发现自己根本不想管服务器和数据库运维，只想把时间花在业务上",
+          "alternative_combo": "C01"
+        }
+      }
     },
     {
       "id": "C03",
@@ -296,7 +341,29 @@
         ],
         "pitfall_articles": []
       },
-      "last_reviewed": "2026-10-29"
+      "last_reviewed": "2026-10-29",
+      "debate": {
+        "author": "manual",
+        "reviewed_at": "2026-10-29",
+        "proponents": [
+          {
+            "target": "BE-03",
+            "argument": "FastAPI 的类型注解即文档，自动生成的 OpenAPI 让前端对接不需要问后端任何问题。"
+          },
+          {
+            "target": "DP-03",
+            "argument": "国内云托管对备案、连通性友好，前后端各自独立扩缩容，互不拖累。"
+          }
+        ],
+        "red_team_warnings": [
+          "双栈成本：React（TS）+ FastAPI（Python）是两套语言、两套依赖、两套部署流水线，一个人维护等于两份心智能量。",
+          "前后端分离的 CORS、鉴权透传、环境变量两处配置，是新手翻车率最高的一类问题。"
+        ],
+        "plan_b": {
+          "trigger": "你是一个人做、且发现大部分业务不需要 Python 生态",
+          "alternative_combo": "C01"
+        }
+      }
     },
     {
       "id": "C04",
@@ -377,7 +444,29 @@
         ],
         "pitfall_articles": []
       },
-      "last_reviewed": "2026-10-29"
+      "last_reviewed": "2026-10-29",
+      "debate": {
+        "author": "manual",
+        "reviewed_at": "2026-10-29",
+        "proponents": [
+          {
+            "target": "BE-02",
+            "argument": "Hono 跑在边缘运行时上，冷启动接近于零，接口和静态页放同一个边缘网络里延迟最低。"
+          },
+          {
+            "target": "DB-02",
+            "argument": "SQLite 零运维零连接串，原型期的数据层复杂度直接归零。"
+          }
+        ],
+        "red_team_warnings": [
+          "边缘运行时不是完整 Node：依赖里只要有 Node 原生模块或长驻连接，部署时才炸，本地完全看不出来。",
+          "SQLite 的写入并发与边缘多副本语义有冲突，数据一旦要\"多端共享\"就该换组合而不是硬扛。"
+        ],
+        "plan_b": {
+          "trigger": "数据要多人共享、写入并发上来、或你发现依赖与边缘运行时不兼容",
+          "alternative_combo": "C02"
+        }
+      }
     },
     {
       "id": "C05",
@@ -438,7 +527,29 @@
         ],
         "pitfall_articles": []
       },
-      "last_reviewed": "2026-10-29"
+      "last_reviewed": "2026-10-29",
+      "debate": {
+        "author": "manual",
+        "reviewed_at": "2026-10-29",
+        "proponents": [
+          {
+            "target": "FE-02",
+            "argument": "Nuxt 对 Vue 开发者是全栈最短路径，自动导入与文件路由心智负担低。"
+          },
+          {
+            "target": "BE-06",
+            "argument": "与 C01 同样的 Supabase 红利：鉴权、存储、数据库开箱即用。"
+          }
+        ],
+        "red_team_warnings": [
+          "Vue 语料量明显少于 React，AI 生成 Nuxt 代码的出错率高于 C01——选它前先确认你是 Vue 派而不是随大流。",
+          "Nuxt 大版本演进（3 到 4）带来的迁移成本，叠加 Supabase 休眠问题，是双重的隐性维护税。"
+        ],
+        "plan_b": {
+          "trigger": "你在意 AI 一次生成成功率，且对 Vue 没有执念",
+          "alternative_combo": "C01"
+        }
+      }
     },
     {
       "id": "C06",
@@ -543,7 +654,29 @@
         ],
         "pitfall_articles": []
       },
-      "last_reviewed": "2026-10-29"
+      "last_reviewed": "2026-10-29",
+      "debate": {
+        "author": "manual",
+        "reviewed_at": "2026-10-29",
+        "proponents": [
+          {
+            "target": "FE-03",
+            "argument": "SvelteKit 的心智模型最接近\"写网页本来该有的样子\"，产物小、启动快。"
+          },
+          {
+            "target": "DB-02",
+            "argument": "SQLite 单文件，原型期数据层没有任何仪式感。"
+          }
+        ],
+        "red_team_warnings": [
+          "Svelte 的公开语料在三大框架里最少，AI 生成 SvelteKit 代码的返工率是闭集最高档，这在 ai_friendliness 分数里已经体现。",
+          "静态适配器（adapter-static）的 fallback 与路由预渲染细节坑多，AI 对这些配置项的把握不稳定。"
+        ],
+        "plan_b": {
+          "trigger": "你发现 AI 反复写错 Svelte 语法、返工成本超过框架本身带来的爽感",
+          "alternative_combo": "C01"
+        }
+      }
     },
     {
       "id": "C07",
@@ -616,7 +749,29 @@
         ],
         "pitfall_articles": []
       },
-      "last_reviewed": "2026-10-29"
+      "last_reviewed": "2026-10-29",
+      "debate": {
+        "author": "manual",
+        "reviewed_at": "2026-10-29",
+        "proponents": [
+          {
+            "target": "FE-05",
+            "argument": "只做微信内的小程序时，原生框架没有编译层，官方文档即全部真相。"
+          },
+          {
+            "target": "BE-06",
+            "argument": "Supabase 的 REST 接口小程序可以直接调，免自建后端的全部成本。"
+          }
+        ],
+        "red_team_warnings": [
+          "个人主体的小程序类目受限（很多业务类目根本开不通），立项前先查类目，这一步能一票否决整个方案。",
+          "真机请求要求域名白名单与 HTTPS：Supabase 域名必须提前加白，且国内连通 Supabase 的稳定性需要实测，别等项目上线才发现调不通。"
+        ],
+        "plan_b": {
+          "trigger": "你要同时上 H5 或 App（一套代码多端）",
+          "alternative_combo": "C08"
+        }
+      }
     },
     {
       "id": "C08",
@@ -680,7 +835,29 @@
         ],
         "pitfall_articles": []
       },
-      "last_reviewed": "2026-10-29"
+      "last_reviewed": "2026-10-29",
+      "debate": {
+        "author": "manual",
+        "reviewed_at": "2026-10-29",
+        "proponents": [
+          {
+            "target": "FE-06",
+            "argument": "uni-app 一套代码出小程序和 H5，多端诉求下的唯一闭集解。"
+          },
+          {
+            "target": "BE-06",
+            "argument": "后端同 C07 的 Supabase 红利，多端共享同一套数据。"
+          }
+        ],
+        "red_team_warnings": [
+          "编译层的抽象会漏：各端差异（组件、API、样式）最终都要手动抹平，\"一套代码\"的真实含义是\"一套代码加一堆条件编译\"。",
+          "对 HBuilderX 工具链的依赖较深，脱离它的 CLI 方案配置繁琐；社区插件质量参差，选型前逐个验证。"
+        ],
+        "plan_b": {
+          "trigger": "多端需求消失、确定只做微信内",
+          "alternative_combo": "C07"
+        }
+      }
     },
     {
       "id": "C09",
@@ -764,7 +941,29 @@
         ],
         "pitfall_articles": []
       },
-      "last_reviewed": "2026-10-29"
+      "last_reviewed": "2026-10-29",
+      "debate": {
+        "author": "manual",
+        "reviewed_at": "2026-10-29",
+        "proponents": [
+          {
+            "target": "AI-02",
+            "argument": "LangGraph 的状态图是对多步 Agent 流程的显式建模，步骤、回退、人工介入都有结构化的落点。"
+          },
+          {
+            "target": "BE-03",
+            "argument": "重编排的算力逻辑放 FastAPI，与 Next 前端解耦，各自独立演进。"
+          }
+        ],
+        "red_team_warnings": [
+          "Agent 编排是闭集里最不确定的一层：流程输出不保证可复现，调试成本远高于普通 CRUD，不要因为\"听起来高级\"就选它。",
+          "双服务（Next + FastAPI）加图状态调试，是闭集里心智负担最重的一套，单人扛它前先掂量。"
+        ],
+        "plan_b": {
+          "trigger": "你的 AI 逻辑其实就是\"调一次模型拿结果\"，没有多步编排",
+          "alternative_combo": "C01"
+        }
+      }
     },
     {
       "id": "C10",
@@ -853,7 +1052,29 @@
         ],
         "pitfall_articles": []
       },
-      "last_reviewed": "2026-10-29"
+      "last_reviewed": "2026-10-29",
+      "debate": {
+        "author": "manual",
+        "reviewed_at": "2026-10-29",
+        "proponents": [
+          {
+            "target": "BE-04",
+            "argument": "NestJS 的模块化分层在多人团队里是纪律的来源，边界清晰可长期维护。"
+          },
+          {
+            "target": "AI-03",
+            "argument": "LangChain 的链式抽象适合把模型调用、提示词模板、输出解析串成可测试的管线。"
+          }
+        ],
+        "red_team_warnings": [
+          "企业级分层（Module/Controller/Service/DTO）对个人与小型项目是纯 overhead，\"为了规范而规范\"会吃掉你一半时间。",
+          "LangChain 的抽象层会漏：出问题时你要穿透它调试底层调用，链路越长定位越难。"
+        ],
+        "plan_b": {
+          "trigger": "团队规模缩小、或发现企业分层在替你做不需要的架构决策",
+          "alternative_combo": "C03"
+        }
+      }
     },
     {
       "id": "C11",
@@ -968,7 +1189,29 @@
         ],
         "pitfall_articles": []
       },
-      "last_reviewed": "2026-10-29"
+      "last_reviewed": "2026-10-29",
+      "debate": {
+        "author": "manual",
+        "reviewed_at": "2026-10-29",
+        "proponents": [
+          {
+            "target": "FE-01",
+            "argument": "Next 的能力保留（路由、SSR 可选），但去掉数据库层，部署与运维成本骤降。"
+          },
+          {
+            "target": "DP-02",
+            "argument": "Edge Functions 免运维，全球分发，静态资源的加载体验最好。"
+          }
+        ],
+        "red_team_warnings": [
+          "无数据库是硬边界：localStorage 有容量上限且换设备不同步，\"先静态后补库\"的迁移等于换组合。",
+          "Edge Functions 的执行时长与区域语义有平台限制，长任务和有状态逻辑放进来会被截断。"
+        ],
+        "plan_b": {
+          "trigger": "数据要存服务端、要登录、或多设备同步",
+          "alternative_combo": "C01"
+        }
+      }
     },
     {
       "id": "C12",
@@ -1098,7 +1341,29 @@
         ],
         "pitfall_articles": []
       },
-      "last_reviewed": "2026-10-29"
+      "last_reviewed": "2026-10-29",
+      "debate": {
+        "author": "manual",
+        "reviewed_at": "2026-10-29",
+        "proponents": [
+          {
+            "target": "FE-04",
+            "argument": "Vite + React 纯静态：没有服务器、没有数据库、没有运维，构建产物扔任何静态托管就能跑。"
+          },
+          {
+            "target": "DP-02",
+            "argument": "Cloudflare Pages 的免费额度对个人项目几乎无限，全球 CDN 顺手就有。"
+          }
+        ],
+        "red_team_warnings": [
+          "纯静态 = 无登录、无服务端存储、无任何秘密可言：API key 写进前端等于公开，这是它的能力天花板而不是配置问题。",
+          "需求一旦碰到\"要存数据\"，迁移成本会一次性爆发——选它前确认需求真的不会长出后端。"
+        ],
+        "plan_b": {
+          "trigger": "出现登录、支付、服务端存储中的任何一个需求",
+          "alternative_combo": "C01"
+        }
+      }
     }
   ]
 }
