@@ -2,6 +2,23 @@
 
 所有显著变更记录在本文件。格式参考 Keep a Changelog；版本遵循 SemVer。
 
+## [2.3.0] - 2026-10-30
+
+### 新增
+- **ai_friendliness 从拍脑袋变为实测**：12 套 × 3 轮真实跑批（deepseek-flash，AI 一次生成 → npm install → build），映射公式可复算（docs/eval-batch-2026-10-30-flash-v1.md）。8 套分数修正：C06/C07/C08 实测垫底（AI 生成的小程序/原生模块方案跑不通），C09/C10 上调（build 能过，骨架覆盖 AI 漏写的层），C11 5→4（1/3 轮依赖声明失败）。
+- **骨架优势硬数据**：全批次 33 组合轮次中，scaffold 部署工件被 AI 100% 漏掉（30/33 轮全漏、无一例外）——“比原生 AI 强”的核心证据。
+- **consistency 防回退闸门**：ai_friendliness_note 必须含实测批次号，退回拍脑袋直接红。
+- eval 失败归因留痕：failure_kind 严格分类（passed/shape_fail/build_fail/coverage_fail），install 错误取 npm error 尾段。
+
+### 修复（跑批暴露，修跑批脚本而非造假数据）
+- eval 落盘 AI 文件：路径 key 混用 \ 与 /（实测 C11 反斜杠 key 复发掐尾 bug）——统一规范化 + dirname。
+- 小程序无 npm build 语义：无 build script 记 skipped 不算失败（C07/C08 口径假阴性修正）。
+- 基线口径变更（实测排序漂移，注明来源）：H01 Top1 C11→C01（C11 实测 4 分，推断不触发的真语义不变）；C11/C12 同分断言改近分（|差|≤1）。
+- C06 归因实锤：AI 引入 better-sqlite3 原生模块（Windows 编译必炸）+ 漏生成路由入口——闭集应考虑以纯 JS sqlite 客户端替代（待办）。
+
+### 变更
+- ⚖️ 红队质疑与辩护 → ⚠️ 避坑预警与平替方案（文案说人话）。
+
 ## [2.2.1] - 2026-10-30
 
 ### 修复

@@ -15,9 +15,9 @@
  *   npx tsx scripts/eval-scaffold.ts --combo C01 --model deepseek-flash [--rounds 3] [--build]
  */
 
-import { appendFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 import combosRaw from '../src/data/combos.json' with { type: 'json' };
 import { buildScaffoldPlan } from '../src/lib/scaffold.ts';
@@ -138,7 +138,7 @@ function scoreAgainstBaseline(files: Record<string, string>) {
     deploy_tools_ai_generated: deployTools.filter((p) => generated.has(p)),
   };
   const extra = [...generated].filter((p) => !baseline.has(p.package));
-  const hasEntry = Object.keys(files).some((p) => /app\/page|src\/main|src\/App|pages\/index|main\.py/.test(p));
+  const hasEntry = Object.keys(files).some((p) => /app\/page|src\/main|src\/App|pages\/index|main\.py|src\/pages/.test(p.replace(/\\/g, '/')));
   return {
     package_json_valid: pkgOk,
     locked_coverage: lockedNeeded.length ? Math.round((lockedHit / lockedNeeded.length) * 100) / 100 : 1,
@@ -151,11 +151,22 @@ function scoreAgainstBaseline(files: Record<string, string>) {
   };
 }
 
-function runBuild(dir: string): { ok: boolean; detail: string } {
+function runBuild(dir: string): { ok: boolean | null; detail: string } {
+  // 小程序等形态没有 npm build 语义（package.json 无 build script）——记 skipped 不算失败
+  try {
+    const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
+    if (!pkg.scripts?.build) return { ok: null, detail: 'skipped: 无 build script（无构建形态，按入口文件判 passed）' };
+  } catch { /* package.json 缺失时走正常 install/build 流程报错 */ }
   const r1 = spawnSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir, encoding: 'utf8', shell: true, timeout: 300000 });
-  if (r1.status !== 0) return { ok: false, detail: `npm install 失败：${(r1.stderr || '').slice(0, 200)}` };
+  if (r1.status !== 0) {
+    // error 汇总在 npm 输出的后段，取尾部而非头部（头部全是 deprecation warning）
+    const tailErr = ((r1.stderr || '') + (r1.stdout || '')).split('npm error').filter(Boolean).at(-1)?.trim().slice(0, 300);
+    return { ok: false, detail: `npm install 失败：${tailErr || (r1.stderr || '').slice(-300)}` };
+  }
   const r2 = spawnSync('npm', ['run', 'build'], { cwd: dir, encoding: 'utf8', shell: true, timeout: 300000 });
-  return { ok: r2.status === 0, detail: r2.status === 0 ? 'build 通过' : `build 失败：${(r2.stderr || '').slice(0, 200)}` };
+  if (r2.status === 0) return { ok: true, detail: 'build 通过' };
+  const tailErr2 = ((r2.stderr || '') + (r2.stdout || '')).split('npm error').filter(Boolean).at(-1)?.trim().slice(0, 300);
+  return { ok: false, detail: `build 失败：${tailErr2 || (r2.stderr || '').slice(-300)}` };
 }
 
 // ── 主流程 ──
@@ -177,14 +188,17 @@ for (let i = 1; i <= rounds; i++) {
   try {
     const { files } = await generateProject(provider);
     const s = scoreAgainstBaseline(files);
-    let build: { ok: boolean; detail: string } = { ok: null as unknown as boolean, detail: '跳过（未加 --build）' };
+    let build: { ok: boolean | null; detail: string } = { ok: null, detail: '跳过（未加 --build）' };
     if (doBuild) {
       const { mkdtempSync, writeFileSync } = await import('node:fs');
       const { tmpdir } = await import('node:os');
       const dir = mkdtempSync(join(tmpdir(), 'sp-eval-'));
-      for (const [p, c] of Object.entries(files)) {
+      for (const [rawPath, c] of Object.entries(files)) {
+        // AI 生成的路径 key 混用 / 和 \（实测 C11：反斜杠 key 在 Windows 上触发与 scaffold
+        // 同款的"掐尾建目录"bug）——统一规范化为 POSIX，再用 dirname 建父目录
+        const p = String(rawPath).replace(/\\/g, '/');
         const target = join(dir, p);
-        mkdirSync(target.slice(0, target.lastIndexOf('/')) || dir, { recursive: true });
+        mkdirSync(dirname(target), { recursive: true });
         writeFileSync(target, c, 'utf8');
       }
       build = runBuild(dir);

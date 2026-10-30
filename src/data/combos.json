@@ -23,7 +23,9 @@
     "data_honesty": "beginner_pitfalls 与 when_to_leave 为待验证项（opinion，非可实测事实），M0 D4 必须找真实用户核实，核实前不得在 UI 中作为确定结论展示。evidence.pitfall_articles 由 M1 人工填充，不预置未经核实的链接。",
     "ai_friendliness_note": "⚠️ 当前为初始主观打分，待真实用例校准。【v1.7.0】learning 改名为 ai_friendliness，语义从「人上手多快」改为「AI 生成多准」，12 套取值全部重新评过。评据三条：① 单语言全栈优于多语言多服务（AI 要跨文件保持一致的上下文越少越好）；② 公开语料丰富度（AI 的训练分布）；③ 报错结构是否清晰可定位。对照（旧 learning → 新 ai_friendliness）：C01 4→5、C02 3→4、C03 2→2、C04 3→4、C05 3→4、C06 5→3、C07 4→3、C08 3→3、C09 1→1、C10 1→2、C11 5→5、C12 5→5。最值得注意的两处：C06 SvelteKit 从 5 降到 3（Svelte 语料少，AI 容易写过时语法）、C01 从 4 升到 5（Next.js + Supabase 是 AI 见过最多的组合之一）。⚠️ 这 12 个数字是**判断**不是实测，与 beginner_pitfalls 同属 opinion，需用真实 AI 生成结果校准。",
     "ai_workflow_note": "【v1.7.0 定位偏移】目标用户从「自己写代码的人」改为「用 Cursor / Agent 写代码的 Vibe Coder」，所以 skills（JS/Python/SQL 熟练度）整体废弃，换成 ai_workflow（full_auto / assisted / learning）。三条连带改动：① 删掉 3 条以 skills 为条件的硬排除（C02 sql<0.3、C03 python<0.3、C09 python<0.5）——AI 写代码时，用户会不会 SQL 不再是门槛，这也直接兑现了「禁止以基础差为由排除带数据库的方案」；② 权重表从「按 goal_type 索引」改为「按 ai_workflow 索引」（见 scoring.ts 的 WEIGHTS）；③ 新增 8 条 ai_workflow 的 fit 规则，full_auto 下给多语言方案减分、给单语言全栈加分。goal_type 没有消失：它仍通过 fit_rules 影响具体需求（作品集 +1 之类），只是不再决定权重。",
-    "skills_removed_note": "【v1.7.0】本文件里所有 `skills.*` 条件已删除（原 6 条 fit_rules + 3 条 hard_exclude_when）。skillMismatch / strongestLang 指标同时从 scoring.ts 移除——它们的口径依赖「用户会什么语言」，在新定位下没有意义。历史基线（docs/D1-*）因此不可与新数据直接比较，已在 M4 文档里标注口径变更。"
+    "skills_removed_note": "【v1.7.0】本文件里所有 `skills.*` 条件已删除（原 6 条 fit_rules + 3 条 hard_exclude_when）。skillMismatch / strongestLang 指标同时从 scoring.ts 移除——它们的口径依赖「用户会什么语言」，在新定位下没有意义。历史基线（docs/D1-*）因此不可与新数据直接比较，已在 M4 文档里标注口径变更。",
+    "eval_batch": "2026-10-30-flash-v1",
+    "ai_friendliness_source": "measured (eval-scaffold, 3 rounds each, deepseek-flash)"
   },
   "combos": [
     {
@@ -155,7 +157,8 @@
           "trigger": "你提出私有化部署、数据必须落在自己手里、或不接受平台锁定",
           "alternative_combo": "C02"
         }
-      }
+      },
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 build 3/3、约束全对 3/3、锁定覆盖 100%。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
     },
     {
       "id": "C02",
@@ -263,7 +266,8 @@
           "trigger": "你发现自己根本不想管服务器和数据库运维，只想把时间花在业务上",
           "alternative_combo": "C01"
         }
-      }
+      },
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 build 2/3、passed 2/3、锁定覆盖 100%。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
     },
     {
       "id": "C03",
@@ -281,7 +285,7 @@
         "deploy": "DP-03"
       },
       "base_scores": {
-        "ai_friendliness": 2,
+        "ai_friendliness": 3,
         "ecosystem": 4,
         "ops": 2,
         "cost": 3,
@@ -363,7 +367,8 @@
           "trigger": "你是一个人做、且发现大部分业务不需要 Python 生态",
           "alternative_combo": "C01"
         }
-      }
+      },
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 build 2/3、passed 0/3、锁定覆盖 50%（AI 常漏部署与数据层胶水）。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
     },
     {
       "id": "C04",
@@ -381,7 +386,7 @@
         "deploy": "DP-02"
       },
       "base_scores": {
-        "ai_friendliness": 4,
+        "ai_friendliness": 3,
         "ecosystem": 3,
         "ops": 4,
         "cost": 5,
@@ -466,7 +471,8 @@
           "trigger": "数据要多人共享、写入并发上来、或你发现依赖与边缘运行时不兼容",
           "alternative_combo": "C02"
         }
-      }
+      },
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 build 2/3、passed 1/3、锁定覆盖 78%。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
     },
     {
       "id": "C05",
@@ -484,7 +490,7 @@
         "deploy": "DP-01"
       },
       "base_scores": {
-        "ai_friendliness": 4,
+        "ai_friendliness": 5,
         "ecosystem": 4,
         "ops": 5,
         "cost": 4,
@@ -549,7 +555,8 @@
           "trigger": "你在意 AI 一次生成成功率，且对 Vue 没有执念",
           "alternative_combo": "C01"
         }
-      }
+      },
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 build 3/3、passed 3/3、锁定覆盖 100%。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
     },
     {
       "id": "C06",
@@ -567,7 +574,7 @@
         "deploy": "DP-02"
       },
       "base_scores": {
-        "ai_friendliness": 3,
+        "ai_friendliness": 1,
         "ecosystem": 3,
         "ops": 4,
         "cost": 5,
@@ -676,7 +683,8 @@
           "trigger": "你发现 AI 反复写错 Svelte 语法、返工成本超过框架本身带来的爽感",
           "alternative_combo": "C01"
         }
-      }
+      },
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 3 轮 install 全挂：AI 引入 better-sqlite3 原生模块（Windows 编译失败）且未生成路由入口。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
     },
     {
       "id": "C07",
@@ -771,7 +779,8 @@
           "trigger": "你要同时上 H5 或 App（一套代码多端）",
           "alternative_combo": "C08"
         }
-      }
+      },
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 build 1/3（另 2 轮无构建语义按入口判定）、passed 3/3。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
     },
     {
       "id": "C08",
@@ -789,7 +798,7 @@
         "deploy": "DP-03"
       },
       "base_scores": {
-        "ai_friendliness": 3,
+        "ai_friendliness": 2,
         "ecosystem": 3,
         "ops": 4,
         "cost": 4,
@@ -857,7 +866,8 @@
           "trigger": "多端需求消失、确定只做微信内",
           "alternative_combo": "C07"
         }
-      }
+      },
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 build 0/3、passed 2/3、锁定覆盖 100%。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
     },
     {
       "id": "C09",
@@ -875,7 +885,7 @@
         "deploy": "DP-03"
       },
       "base_scores": {
-        "ai_friendliness": 1,
+        "ai_friendliness": 3,
         "ecosystem": 5,
         "ops": 2,
         "cost": 3,
@@ -963,7 +973,8 @@
           "trigger": "你的 AI 逻辑其实就是\"调一次模型拿结果\"，没有多步编排",
           "alternative_combo": "C01"
         }
-      }
+      },
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 build 2/3、passed 0/3、锁定覆盖 33%（双服务 AI 只写一半）。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
     },
     {
       "id": "C10",
@@ -981,7 +992,7 @@
         "deploy": "DP-03"
       },
       "base_scores": {
-        "ai_friendliness": 2,
+        "ai_friendliness": 3,
         "ecosystem": 4,
         "ops": 2,
         "cost": 3,
@@ -1074,7 +1085,8 @@
           "trigger": "团队规模缩小、或发现企业分层在替你做不需要的架构决策",
           "alternative_combo": "C03"
         }
-      }
+      },
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 build 3/3、passed 0/3、锁定覆盖 33%（Nest 分层 AI 只写骨架）。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
     },
     {
       "id": "C11",
@@ -1092,7 +1104,7 @@
         "deploy": "DP-02"
       },
       "base_scores": {
-        "ai_friendliness": 5,
+        "ai_friendliness": 4,
         "ecosystem": 4,
         "ops": 5,
         "cost": 5,
@@ -1211,7 +1223,8 @@
           "trigger": "数据要存服务端、要登录、或多设备同步",
           "alternative_combo": "C01"
         }
-      }
+      },
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 build 2/3、passed 2/3、锁定覆盖 100%（修复 Windows 路径 bug 后）。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
     },
     {
       "id": "C12",
@@ -1363,7 +1376,8 @@
           "trigger": "出现登录、支付、服务端存储中的任何一个需求",
           "alternative_combo": "C01"
         }
-      }
+      },
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 build 3/3、passed 3/3、锁定覆盖 100%。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
     }
   ]
 }

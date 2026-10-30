@@ -1,6 +1,6 @@
 {
   "name": "stackpilot-mcp",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "private": false,
   "type": "module",
   "description": "MCP Server：宿主模型借用 + 三级解析路由 + 架构契约落盘。把一句大白话变成技术选型 + 可直接落盘的启动规范",

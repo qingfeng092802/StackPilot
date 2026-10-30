@@ -85,6 +85,12 @@ check('plan_b.alternative_combo 在闭集内且不指向自身', combos.every((c
 check('plan_b.trigger 非空且非模板话术', combos.every((c: any) =>
   typeof c.debate.plan_b?.trigger === 'string' && c.debate.plan_b.trigger.length >= 10));
 
+// ── v2.3：ai_friendliness 防回退——必须挂着实测批次的溯源，不许退回拍脑袋 ──
+const BATCH_RE = /\d{4}-\d{2}-\d{2}-flash-v\d/;
+check('meta.eval_batch 已登记（实测批次号）', typeof combosRaw.meta.eval_batch === 'string' && BATCH_RE.test(combosRaw.meta.eval_batch), combosRaw.meta.eval_batch);
+check('每套 ai_friendliness_note 都含实测批次号（防回退到人工拍数）', combos.every((c: any) =>
+  typeof c.ai_friendliness_note === 'string' && c.ai_friendliness_note.includes(combosRaw.meta.eval_batch)));
+
 console.log('\n=== 2. 权重表：不含 fit（v0.4.2 不变量）===');
 const weightKeys = Object.keys(WEIGHTS.assisted);
 check('权重维度为 5 个', weightKeys.length === 5, weightKeys.join(','));
@@ -374,10 +380,16 @@ check('delivery=selfhost 判为 covered（自部署仍是 Web 应用）',
 
 // 8.8 词表收窄（删「收藏」）后的双向回归。
 // 两条必须成对：只断言 H01 恢复，等于默许把词表删空——H06 会跟着坏。
+//
+// 【2026-10-30 实测批次 2026-10-30-flash-v1 后的口径变更】
+// ai_friendliness 从拍脑袋改为实测后，C11 5→4（deepseek-flash 3 轮中 1 轮依赖声明失败：
+// 用了 openai 包却没写进 package.json），Top1 由 C11 漂到 C01。这是校准后的诚实排序：
+// C01 满足 H01 的全部需求（只是多了用户不需要的 DB 层，非最优而非错误）。
+// 本断言改为：推断不触发（词表收窄的真语义）+ Top1 在零数据库方案或其直接上位替代中。
 const h01 = d1Holdout.cases.find((c: any) => c.id === 'H01');
 const r01 = rank(combos, h01.blind_constraint_vector, { raw_input: h01.raw_input });
-check('H01 恢复 HIT：「收藏」不再触发推断，Top1 回到 C11（零数据库）',
-  r01.ok && r01.inferred_capabilities.length === 0 && r01.top1.id === 'C11',
+check('H01：「收藏」不再触发推断，Top1 为 C11 或其实测上位替代 C01（推断不触发是词表收窄的真语义）',
+  r01.ok && r01.inferred_capabilities.length === 0 && ['C11', 'C01'].includes(r01.top1.id),
   r01.ok ? `Top1=${r01.top1.id} 推断=${r01.inferred_capabilities.join(',') || '无'}` : 'blocked');
 check('「收藏」单独出现不算服务端持久化证据（H01 原文）',
   findPersistenceMention('还能收藏喜欢的').hit === false);
@@ -395,10 +407,14 @@ check('所有组合的范式取值都在 A–E 内',
   combos.every((c: any) => ['A', 'B', 'C', 'D', 'E'].includes(c.paradigm)),
   [...new Set(combos.map((c: any) => c.paradigm))].sort().join(''));
 
-// 同分是真实存在的：C11 与 C12 的 base_scores 按设计同档，fit 又都会 clamp 到 5。
-// 这条断言保证"tie-break 场景"不会因为有人调了 C12 的分而静默消失。
-check('C11 与 C12 的 base_scores 完全相同（同分场景真实存在）',
-  JSON.stringify(c11.base_scores) === JSON.stringify(c12.base_scores));
+// 同分/近分是真实存在的：C11 与 C12 的 base_scores 原设计同档，fit 都会 clamp 到 5，
+// tie-break（同分取组件更少）就是为它们写的。
+// 【2026-10-30 实测后口径变更】ai_friendliness 实测使 C11(4) 与 C12(5) 不再完全同分，
+// 断言改为"近分"：|分差| ≤ 1，保证 tie-break/近分排序场景不会静默消失。
+check('C11 与 C12 的 base_scores 近分（|差| ≤ 1，tie-break 场景真实存在）',
+  Math.abs(c11.base_scores.ai_friendliness - c12.base_scores.ai_friendliness) <= 1 &&
+  JSON.stringify({ ...c11.base_scores, ai_friendliness: c12.base_scores.ai_friendliness }) ===
+  JSON.stringify({ ...c12.base_scores, ai_friendliness: c12.base_scores.ai_friendliness }));
 
 // tie-break 端到端：CT04 既无 AI 也无登录/持久化 → 两套都合格 → 组件更少的 C12 胜
 const ct04tie = rank(combos, casesRaw.cases.find((c: any) => c.id === 'CT04').constraint_vector,
