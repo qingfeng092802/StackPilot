@@ -39,7 +39,7 @@ function isLlmEnabled(): boolean {
 }
 const MODEL = process.env.ANTHROPIC_MODEL ?? 'deepseek-flash';
 
-export const VERSION = '2.3.0';
+export const VERSION = '3.0.0';
 
 /** 日志一律走 stderr —— stdout 留给 JSON-RPC */
 export function log(...args: unknown[]) {

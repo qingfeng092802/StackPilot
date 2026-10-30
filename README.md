@@ -4,7 +4,7 @@
 > 还能把这套架构**一键写成项目规则文件**、**生成可运行的骨架**、**反查你的存量项目偏离了几条**——
 > AI 在你的项目里会自动遵守，不用再复制粘贴。
 
-v2.1.1 · MIT · Node ≥ 20.11 · [ROADMAP](docs/ROADMAP-v2.1.md) · [CHANGELOG](CHANGELOG.md)
+v3.0.0 · MIT · Node ≥ 20.11 · [ROADMAP](docs/ROADMAP-v2.1.md) · [ROADMAP v2.2](docs/ROADMAP-v2.2-debate.md) · [CHANGELOG](CHANGELOG.md)
 
 ## 为什么需要它
 
@@ -19,6 +19,14 @@ v2.1.1 · MIT · Node ≥ 20.11 · [ROADMAP](docs/ROADMAP-v2.1.md) · [CHANGELOG
 | 换个会话/项目，AI 对这套约束全部失忆 | `apply_stack_blueprint` 落盘到 `.cursor/rules/` 和 `CLAUDE.md`，AI 打开项目自动遵守 |
 | 从零项目每套架构都得手把手重搭 | `scaffold_blueprint` 生成锁定版本的可运行骨架（版本按事实快照溯源） |
 | 存量项目不知道自己离规范多远 | `inspect_project` 只读反查：最接近哪套蓝图、缺了什么、多了什么 |
+
+---
+
+> 📊 **实测招牌数据（批次 2026-10-30-flash-v1，deepseek-flash × 12 套 × 3 轮，含真实 install + build）**：
+> AI 一次生成的项目，**部署工件的遗漏率是 100%**（33 个组合轮次全漏、无一例外）；
+> 同一套组合换上确定性骨架 + 数据层禁令后，C06 的一次生成成功率**从 0% 恢复到 100%**（换库对照实验）。
+> 12 套的 `ai_friendliness` 全部来自这批实测，不再有拍脑袋的数字——详见 [eval 批次报告](docs/eval-batch-2026-10-30-flash-v1.md)。
+> **大模型只会写业务代码，工程兜底必须靠确定性骨架——这就是 StackPilot 存在的理由。**
 
 ---
 
@@ -122,6 +130,8 @@ WorkBuddy 有两个坑必须知道：
 ---
 
 ## 二、五个工具
+
+> ✅ **骨架实跑验证状态**：C01 于 Windows（install 328 包 + next build 通过）、C06 换库对照补跑 3/3、C12 于 eval 管线 install+build 通过；12 套的 ai_friendliness 全部来自实测跑批（[批次报告](docs/eval-batch-2026-10-30-flash-v1.md)）。
 
 ### `recommend_stack` —— 选型引擎
 

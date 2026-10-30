@@ -119,6 +119,14 @@ export function buildAiBootstrapPrompt(input: BootstrapInput): string {
   parts.push(step.action + (step.minutes ? `（预计 ${step.minutes} 分钟）` : ''));
   parts.push('');
 
+  // 【硬性禁令】来自实测批次 2026-10-30-flash-v1 的两条最致命翻车：
+  // 原生模块编译失败（C06 三轮 install 全挂）、依赖声明与 import 不一致（C11 build 翻车）。
+  parts.push('## 硬性禁令（实测踩坑，违反必翻车）');
+  parts.push('- **严禁引入需要 node-gyp 编译的原生依赖**（better-sqlite3、sqlite3、bcrypt 等）——用纯 JS / WASM 实现（如 `@libsql/client`）。');
+  parts.push('- **每 import 一个新包，立刻写进 package.json 的 dependencies**——实测中 AI 用了 openai 却没声明，build 直接 Module not found。');
+  parts.push('- 文件路径一律用正斜杠 `/`；文件保持最小可运行，不要内嵌大段 SVG / 示例数据。');
+  parts.push('');
+
   if (pits.length) {
     parts.push('## 写的时候特别注意这几个坑');
     pits.forEach((p, i) => parts.push(`${i + 1}. ${p}`));

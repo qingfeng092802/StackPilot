@@ -255,8 +255,27 @@ const DB_01: ScaffoldPart = {
 
 const DB_02: ScaffoldPart = {
   component: 'DB-02',
-  deps: [],
-  files: { 'db/README.md': '# SQLite\n\n单文件数据库，无服务。连接串形如 `file:./dev.db`，文件位置由所选访问层解释。\n' },
+  deps: [
+    {
+      package: '@libsql/client',
+      version: '^0.14.0',
+      peer_note: '纯 JS/WASM 的 SQLite 客户端，facts 快照无条目。实测批次 2026-10-30-flash-v1 证明：AI 自选 better-sqlite3（原生编译）在 Windows 上 3 轮 install 全部编译失败——数据层只允许纯 JS 实现',
+    },
+  ],
+  files: {
+    'db/README.md': [
+      '# SQLite（DB-02）',
+      '',
+      '**访问层已定：`@libsql/client`（纯 JS/WASM，零编译）。**',
+      '',
+      '## 禁止',
+      '',
+      '- **严禁引入需要 node-gyp 编译的原生依赖**（better-sqlite3、sqlite3、bcrypt 等）：',
+      '  实测批次 2026-10-30-flash-v1 中，AI 自选 better-sqlite3 的项目在 Windows 上 3 轮 install 全部编译失败。',
+      '- 连接串：`file:./dev.db`（见 .env.example）',
+      '',
+    ].join('\n'),
+  },
   env: ['DATABASE_URL=file:./dev.db'],
 };
 

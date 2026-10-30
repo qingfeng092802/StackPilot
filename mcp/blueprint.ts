@@ -87,6 +87,17 @@ export function renderBlueprintBody(combo: Combo): string {
   parts.push('- 不要替换上述任何框架 / 服务，不要"顺手升级"架构（如把轻量存储换成数据库）。');
   parts.push('- 不要引入技术栈清单里没有的中间件（例如 Redis、Kafka、RabbitMQ、Elasticsearch）——确有需要时先停下来问我。');
   parts.push('- 不要自行添加微服务、消息队列、独立网关这类分层，这套方案是按当前规模选的最短路径。');
+  parts.push('- **严禁引入需要 node-gyp 编译的原生依赖**（better-sqlite3、sqlite3、bcrypt 等）：数据层一律用纯 JS / WASM 实现（如 `@libsql/client`）。实测 36 轮跑批中，AI 自选原生模块的项目在 Windows 上编译全部失败。');
+  parts.push('');
+
+  // 「AI 生成纪律」：从 36 轮真实跑批（批次 2026-10-30-flash-v1）的失败日志提炼，
+  // 每一条都对应一类实测翻车——这是"用实测数据喂给 AI 提示词"的部分，不是通用废话。
+  parts.push('## AI 生成纪律（实测 36 轮跑批提炼）');
+  parts.push('');
+  parts.push('1. **每 import 一个新包，立刻写进 package.json 的 dependencies**——实测中 AI 用了 `openai` 却没声明依赖，build 阶段 `Module not found` 直接翻车。');
+  parts.push('2. **文件路径一律用正斜杠 `/`**——混合反斜杠的路径在 Windows 上会生成错误目录结构（实测踩坑）。');
+  parts.push('3. **文件保持最小可运行**——不要内嵌大段 SVG / 图标 / 示例数据，输出超限被截断的产物等于零（实测撞满输出上限）。');
+  parts.push('4. **部署配置不要自己发明**——部署工件（vercel.json / wrangler.toml / docker-compose 等）由本项目骨架提供，实测 33 轮次中 AI 对它们的遗漏率是 100%。');
   parts.push('');
 
   parts.push('## 第一步（从这里开始，做完停下来说明改了什么）');

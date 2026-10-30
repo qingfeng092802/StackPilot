@@ -138,7 +138,10 @@ function scoreAgainstBaseline(files: Record<string, string>) {
     deploy_tools_ai_generated: deployTools.filter((p) => generated.has(p)),
   };
   const extra = [...generated].filter((p) => !baseline.has(p.package));
-  const hasEntry = Object.keys(files).some((p) => /app\/page|src\/main|src\/App|pages\/index|main\.py|src\/pages/.test(p.replace(/\\/g, '/')));
+  // 入口文件形态覆盖：Next（app/page）/ Vite-React（src/main）/ 小程序（pages/index）/
+  // SvelteKit（src/routes/+page）/ uni-app（index.svelte）——eval 批次暴露的检测盲区已补
+  const ENTRY_RE = new RegExp('app/page|src/main|src/App|pages/index|main\\.py|src/routes/\\+page|index\\.svelte|src/views');
+  const hasEntry = Object.keys(files).some((p) => ENTRY_RE.test(p.replace(/\\/g, '/')));
   return {
     package_json_valid: pkgOk,
     locked_coverage: lockedNeeded.length ? Math.round((lockedHit / lockedNeeded.length) * 100) / 100 : 1,

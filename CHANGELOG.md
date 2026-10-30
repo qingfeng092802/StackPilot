@@ -2,6 +2,23 @@
 
 所有显著变更记录在本文件。格式参考 Keep a Changelog；版本遵循 SemVer。
 
+## [3.0.0] - 2026-10-31
+
+### 为什么是 major
+**ai_friendliness 分数体系语义变更**：12 个数字全部从人工判断变为实测跑批结果（deepseek-flash × 3 轮 × 含 install+build），分数的含义、数值与排序随之改变（8 套修正、C06 1→5）。对外承诺从"我们觉得"变成"我们测过"。
+
+### 新增
+- **换库对照实验（C06）**：数据层从"AI 自选（实测选了 better-sqlite3，Windows 编译 3 轮全炸）"改为"@libsql/client 定死 + 禁令进启动指令"，一次生成成功率 0% → 100%。
+- **AI 生成纪律区块**（blueprint + 启动指令双落点）：从 36 轮失败日志提炼 4 条实测规则——依赖声明一致性 / 正斜杠路径 / 最小可运行 / 部署工件勿自创。每条都有批次数据背书。
+- DB-02 数据层定死 @libsql/client（纯 JS/WASM），db/README.md 明令禁止 node-gyp 原生依赖。
+- eval 入口检测补盲区：SvelteKit（src/routes/+page）/ uni-app（index.svelte）。
+
+### 变更
+- README：实测招牌数据置顶 + 骨架实跑验证状态。
+
+### 数据
+- C06 补跑 3/3 全通过，ai_friendliness 1 → 5（换库对照，见 docs/eval-batch-2026-10-30-flash-v1.md 补跑记录）。
+
 ## [2.3.0] - 2026-10-30
 
 ### 新增

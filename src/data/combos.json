@@ -574,7 +574,7 @@
         "deploy": "DP-02"
       },
       "base_scores": {
-        "ai_friendliness": 1,
+        "ai_friendliness": 5,
         "ecosystem": 3,
         "ops": 4,
         "cost": 5,
@@ -684,7 +684,7 @@
           "alternative_combo": "C01"
         }
       },
-      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1（deepseek-flash × 3 轮，含 install+build）：实测 3 轮 install 全挂：AI 引入 better-sqlite3 原生模块（Windows 编译失败）且未生成路由入口。公式 1+round(4×(0.6×build_rate+0.4×pass_rate))。"
+      "ai_friendliness_note": "实测批次 2026-10-30-flash-v1 原判 1 分（AI 自选 better-sqlite3 原生模块，Windows 3 轮 install 全炸）；数据层改定 @libsql/client + 启动指令加原生模块禁令后补跑 3 轮 build 全通过，恢复 5 分。换库前后数据即“确定性骨架价值”的直接证据。"
     },
     {
       "id": "C07",
