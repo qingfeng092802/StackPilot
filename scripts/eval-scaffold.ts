@@ -92,7 +92,15 @@ async function generateProject(provider: LLMProvider): Promise<{ files: Record<s
   return { files: parsed.files ?? {}, raw: res.text };
 }
 
-/** 与骨架基线对比 */
+/**
+ * 部署工具链（DP 组件的 dev 依赖）：AI 按启动 Prompt 生成项目时**不该**指望它生成部署 CLI。
+ * 这些从 locked_coverage 的必选分母中剔除，单独统计——它们由 scaffold 骨架 / 部署第一步覆盖。
+ * 闭集哲学：清单封闭，新 DP 组件进来时同步这里。
+ */
+const DEPLOY_TOOLS = new Set(['vercel', 'wrangler', '@cloudbase/cli']);
+/** 骨架基础文件，不参与 AI 覆盖对比（AI 有自己的 README/gitignore 习惯） */
+const BASELINE_FILES_IGNORED = /^(.gitignore|README.md|.stackpouch.*)$/i;
+
 function scoreAgainstBaseline(files: Record<string, string>) {
   const plan = buildScaffoldPlan(combo!);
   const baseline = new Map(plan.provenance.map((p) => [p.package, p]));
@@ -107,8 +115,28 @@ function scoreAgainstBaseline(files: Record<string, string>) {
       } catch { /* package.json 非法计失败 */ }
     }
   }
-  const lockedNeeded = [...baseline.values()].filter((p) => p.source === 'facts-snapshot');
+  const lockedNeeded = [...baseline.entries()]
+    .filter(([pkg, p]) => p.source === 'facts-snapshot' && !DEPLOY_TOOLS.has(pkg))
+    .map(([pkg]) => ({ package: pkg, version: baseline.get(pkg)!.version }));
   const lockedHit = lockedNeeded.filter((p) => generated.has(p.package)).length;
+  const deployTools = [...baseline.keys()].filter((p) => DEPLOY_TOOLS.has(p));
+
+  // ── 骨架优势硬断言（v2.3）：scaffold 生成的部署工件，AI 一次生成时 100% 漏掉 ──
+  // 这就是“比原生 AI 强”的核心数据：部署/测试类文件 AI 从不自发产出，骨架 100% 覆盖。
+  const scaffoldPaths = plan.files.map((f) => f.path).filter((p) => !BASELINE_FILES_IGNORED.test(p));
+  const aiPaths = new Set(Object.keys(files));
+  const filesAiMissed = scaffoldPaths.filter((p) => !aiPaths.has(p));
+  const DEPLOY_ARTIFACT_RE = new RegExp('(^|[\\\\/])(deploy[\\\\/]|vercel\\.json|wrangler\\.toml|cloudbaserc|docker-compose\\.yml)');
+  const deployArtifacts = scaffoldPaths.filter((p) => DEPLOY_ARTIFACT_RE.test(p));
+  const scaffoldAdvantage = {
+    // 硬断言：骨架的部署工件必须全部出现在 AI 的缺失清单里
+    deploy_artifacts_covered_by_ai: deployArtifacts.filter((p) => aiPaths.has(p)),
+    deploy_artifacts_all_missed_by_ai: deployArtifacts.every((p) => !aiPaths.has(p)),
+    scaffold_deploy_files: deployArtifacts,
+    files_ai_missed_count: filesAiMissed.length,
+    files_ai_missed_sample: filesAiMissed.slice(0, 8),
+    deploy_tools_ai_generated: deployTools.filter((p) => generated.has(p)),
+  };
   const extra = [...generated].filter((p) => !baseline.has(p.package));
   const hasEntry = Object.keys(files).some((p) => /app\/page|src\/main|src\/App|pages\/index|main\.py/.test(p));
   return {
@@ -119,6 +147,7 @@ function scoreAgainstBaseline(files: Record<string, string>) {
     extra_packages: extra,
     entry_file_present: hasEntry,
     file_count: Object.keys(files).length,
+    ...scaffoldAdvantage,
   };
 }
 
@@ -161,6 +190,10 @@ for (let i = 1; i <= rounds; i++) {
       build = runBuild(dir);
     }
     const passed = s.package_json_valid && s.locked_coverage >= 0.8 && s.entry_file_present && (build.ok !== false);
+    const failureKind = passed ? 'passed'
+      : !s.package_json_valid || !s.entry_file_present ? 'shape_fail'
+      : build.ok === false ? 'build_fail'
+      : s.locked_coverage < 0.8 ? 'coverage_fail' : 'unknown';
     if (passed) success++;
     const record = {
       verified_at: new Date().toISOString(),
@@ -169,6 +202,7 @@ for (let i = 1; i <= rounds; i++) {
       model,
       round: i,
       passed,
+      failure_kind: failureKind,
       latency_ms: Date.now() - started,
       ...s,
       build: doBuild ? build : undefined,

@@ -88,13 +88,13 @@ group('四、最小合法输入端到端（无 key → 路径 C，确定性）')
   const rec = await recH({ raw_input: '我想做个记账的小程序，我自己一个人做' });
   const text = rec.content[0].text;
   ok('recommend 正常出方案', !rec.isError && text.startsWith('# 推荐：'), text.slice(0, 120));
-  // ⚖️ 红队区块（v2.2.0 验收：渲染输出必须包含）
-  ok('输出含红队质疑与辩护区块', text.includes('⚖️ 红队质疑与辩护'), 'no debate section');
-  ok('红队警告有实际内容（非空标题）', /为什么可能是错的（红队警告）：/.test(text) && text.includes('- '));
-  ok('Plan B 含触发条件与平替组合', text.includes('如果这套方案翻车了（Plan B）') && /左转 C\d{2}/.test(text));
+  // ⚠️ 避坑预警与平替方案区块（v2.2.0 验收：渲染输出必须包含；v2.3 文案说人话）
+  ok('输出含避坑预警与平替方案区块', text.includes('⚠️ 避坑预警与平替方案'), 'no debate section');
+  ok('翻车点有实际内容（非空标题）', /这套方案可能翻车的地方：/.test(text) && text.includes('- '));
+  ok('Plan B 含何时该换与换哪套', text.includes('真不行了怎么办（Plan B）') && /左转 C\d{2}/.test(text));
   const detH = byName.get('get_detailed_prompt')!.handler;
   const det = await detH({ combo_id: 'C12', user_requirements: '测试' });
-  ok('detailed 正常返回且含红队区块', det.content[0].text.includes('C12') && det.content[0].text.includes('⚖️'));
+  ok('detailed 正常返回且含避坑区块', det.content[0].text.includes('C12') && det.content[0].text.includes('⚠️ 避坑预警与平替方案'));
   const bad = await detH({ combo_id: 'C99', user_requirements: '测试' });
   ok('不存在的组合给提示而非报错', !bad.isError && bad.content[0].text.includes('没有 C99'));
 }
@@ -106,7 +106,7 @@ group('五、renderDebateSection 纯函数：确定性渲染 + 向后兼容（v2
   const c01 = combos.find((c) => c.id === 'C01');
   const lines = renderDebateSection(c01, combos);
   const md = lines.join('\n');
-  ok('有 debate 数据：输出红队标题', md.includes('⚖️ 红队质疑与辩护'));
+  ok('有 debate 数据：输出避坑预警标题', md.includes('⚠️ 避坑预警与平替方案'));
   ok('每条警告逐条渲染', c01.debate.red_team_warnings.every((w: string) => md.includes(w)));
   ok('Plan B 渲染组合名', md.includes(`左转 ${c01.debate.plan_b.alternative_combo}`));
   // 向后兼容：无 debate 的旧数据整块跳过
