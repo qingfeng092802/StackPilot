@@ -44,6 +44,19 @@ const CAP_CN: Record<string, string> = {
   multi_platform: '一套代码多端',
 };
 
+/**
+ * AI 生成纪律（v3.1.0 抽为常量）：从 36 轮真实跑批（批次 2026-10-30-flash-v1）的
+ * 失败日志提炼，每一条都对应一类实测翻车。启动指令与深度评审（deep_architecture_review）
+ * 共用同一份文本——两个入口给 AI 的纪律必须一字不差。
+ */
+export const AI_GENERATION_DISCIPLINE: string[] = [
+  '**严禁引入需要 node-gyp 编译的原生依赖**（better-sqlite3、sqlite3、bcrypt 等）——用纯 JS / WASM 实现（如 `@libsql/client`）。实测中 AI 自选原生模块的项目在 Windows 上编译全部失败。',
+  '**每 import 一个新包，立刻写进 package.json 的 dependencies**——实测中 AI 用了 openai 却没声明，build 直接 Module not found。',
+  '**文件路径一律用正斜杠 `/`**——混合反斜杠的路径在 Windows 上会生成错误目录结构（实测踩坑）。',
+  '**文件保持最小可运行**——不要内嵌大段 SVG / 图标 / 示例数据，输出超限被截断的产物等于零（实测撞满输出上限）。',
+  '**部署配置不要自己发明**——部署工件（vercel.json / wrangler.toml / docker-compose 等）由骨架提供，实测 33 轮次中 AI 对它们的遗漏率是 92% 以上。',
+];
+
 export interface BootstrapInput {
   combo: Combo;
   vector: ConstraintVector;
@@ -121,10 +134,9 @@ export function buildAiBootstrapPrompt(input: BootstrapInput): string {
 
   // 【硬性禁令】来自实测批次 2026-10-30-flash-v1 的两条最致命翻车：
   // 原生模块编译失败（C06 三轮 install 全挂）、依赖声明与 import 不一致（C11 build 翻车）。
+  // 文本抽为 AI_GENERATION_DISCIPLINE 常量，与深度评审共用（v3.1.0）。
   parts.push('## 硬性禁令（实测踩坑，违反必翻车）');
-  parts.push('- **严禁引入需要 node-gyp 编译的原生依赖**（better-sqlite3、sqlite3、bcrypt 等）——用纯 JS / WASM 实现（如 `@libsql/client`）。');
-  parts.push('- **每 import 一个新包，立刻写进 package.json 的 dependencies**——实测中 AI 用了 openai 却没声明，build 直接 Module not found。');
-  parts.push('- 文件路径一律用正斜杠 `/`；文件保持最小可运行，不要内嵌大段 SVG / 示例数据。');
+  for (const line of AI_GENERATION_DISCIPLINE) parts.push(`- ${line}`);
   parts.push('');
 
   if (pits.length) {

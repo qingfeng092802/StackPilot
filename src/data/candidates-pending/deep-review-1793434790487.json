@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-10-31T08:19:50.487Z",
+  "raw_input": "我要做一个 0 预算、带实时协作和 AI 辅助的 3D 建模软件，还要支持 10 万人同时在线",
+  "verdict": {
+    "headline": "建议自研 WebGL 引擎 + 自建信令服务",
+    "recommended_stack": [
+      {
+        "layer": "渲染",
+        "choice": "WebGPU 自研管线",
+        "reason": "闭集无法表达"
+      }
+    ],
+    "red_team_warnings": [
+      "工作量远超预期"
+    ],
+    "plan_b": {
+      "trigger": "三个月内做不完",
+      "fallback": "降级为 2D"
+    },
+    "open_questions": [],
+    "combo_id": null
+  },
+  "perspectives": [
+    {
+      "angle": "成本视角",
+      "payload": {
+        "verdict": "该组合在本维度成本可控，主要开销在托管层。",
+        "top_risks": [
+          "托管费用随日活增长"
+        ]
+      }
+    },
+    {
+      "angle": "性能视角",
+      "payload": {
+        "verdict": "该组合在本维度成本可控，主要开销在托管层。",
+        "top_risks": [
+          "托管费用随日活增长"
+        ]
+      }
+    },
+    {
+      "angle": "开发速度视角",
+      "payload": {
+        "verdict": "该组合在本维度成本可控，主要开销在托管层。",
+        "top_risks": [
+          "托管费用随日活增长"
+        ]
+      }
+    }
+  ],
+  "red_team": {
+    "contradictions": [
+      "成本视角要求省钱，性能视角要求加缓存，两者冲突"
+    ],
+    "blind_spots": [
+      "都没提数据迁移"
+    ]
+  }
+}

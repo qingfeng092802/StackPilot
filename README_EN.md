@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/qingfeng092802/StackPilot/stargazers"><img src="https://img.shields.io/github/stars/qingfeng092802/StackPilot?style=flat&color=yellow" alt="Stars"></a>
-  <a href="https://github.com/qingfeng092802/StackPilot/releases/tag/v3.0.0"><img src="https://img.shields.io/badge/version-3.0.0-blue" alt="Version 3.0.0"></a>
+  <a href="https://github.com/qingfeng092802/StackPilot/releases/tag/v3.0.0"><img src="https://img.shields.io/badge/version-3.1.0-blue" alt="Version 3.0.0"></a>
   <a href="https://github.com/qingfeng092802/StackPilot/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/qingfeng092802/StackPilot/ci.yml?branch=main&label=CI" alt="CI"></a>
   <a href="https://github.com/qingfeng092802/StackPilot/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/node-%E2%89%A520.11-brightgreen" alt="Node >= 20.11">
@@ -43,6 +43,7 @@ Ask an AI "what stack should I use?" and it will confidently hand you a plan —
 | `apply_stack_blueprint` | Writes the architecture contract idempotently into `.cursor/rules/stackpilot.mdc` and `CLAUDE.md` — the AI obeys it the moment it opens your project |
 | `scaffold_blueprint` | Generates a runnable skeleton: version-pinned package.json, directory layout, `.env.example`, deployment config (never overwrites existing files) |
 | `inspect_project` | Read-only audit of an existing repo: closest blueprint, what's missing, what's extra (monorepos are explicitly declined) |
+| `deep_architecture_review` | **For complex needs only** (~30s + extra cost, requires a key): three blind perspectives → red-team contradiction pass → judge verdict; out-of-set verdicts are logged as candidates with a measured-discipline manual prompt. Use `recommend_stack` for everyday picks |
 
 Three-stage parsing, **works without any API key**: host-extracted structured constraints (zero cost, preferred) → built-in LLM → offline keyword + Chinese-number rules.
 

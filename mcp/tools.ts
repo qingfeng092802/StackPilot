@@ -27,6 +27,8 @@ import type { ParseInfo } from './render.ts';
 import { applyBlueprint } from './blueprint.ts';
 import { scaffoldBlueprint } from './scaffold.ts';
 import { inspectProject } from './inspect.ts';
+import { runDeepReview } from './deep-review.ts';
+import { renderDeepReview } from './render.ts';
 import { recordOutcome } from '../src/lib/telemetry.ts';
 import { blockedMarkdown } from './blocked.ts';
 
@@ -39,7 +41,7 @@ function isLlmEnabled(): boolean {
 }
 const MODEL = process.env.ANTHROPIC_MODEL ?? 'deepseek-flash';
 
-export const VERSION = '3.0.0';
+export const VERSION = '3.1.0';
 
 /** 日志一律走 stderr —— stdout 留给 JSON-RPC */
 export function log(...args: unknown[]) {
@@ -468,6 +470,46 @@ export function buildToolTools(): ToolDefinition[] {
       handler: safeHandler('inspect_project', async (args) => {
         const r = inspectProject({ workspace_path: String((args as any).workspace_path ?? '') }, combos);
         return { content: [{ type: 'text', text: r.markdown }], ...(r.isError ? { isError: true } : {}) };
+      }),
+    },
+    {
+      name: 'deep_architecture_review',
+      spec: {
+        title: '深度架构评审（多视角对抗，耗时约 30 秒，产生额外模型费用）',
+        description:
+          '仅限极其复杂的系统架构设计（多目标冲突、超出现有闭集的需求），走三视角盲评 + 红队挑刺 + 法官裁决的对抗流程，' +
+          '耗时约 30 秒并产生额外模型调用费用。常规选型请用 recommend_stack（秒级、零成本、闭集兜底）。' +
+          '需要配置 ANTHROPIC_API_KEY。裁决落在闭集内时会指路常规工具；闭集外自动记录为候选并给出带实测纪律的手动搭建指令。',
+        inputSchema: {
+          raw_input: z.string().describe('完整的复杂需求原话，尽量保留原话'),
+        },
+      },
+      handler: safeHandler('deep_architecture_review', async (args) => {
+        const rawInput = String((args as any).raw_input ?? '').trim();
+        if (!isLlmEnabled()) {
+          return {
+            content: [{
+              type: 'text',
+              text:
+                '# 深度评审不可用\n\n' +
+                '`deep_architecture_review` 需要多路模型调用，请先配置 ANTHROPIC_API_KEY。\n\n' +
+                '常规选型不需要 key：直接用 `recommend_stack`（闭集 12 套，秒级返回）。',
+            }],
+            isError: true,
+          };
+        }
+        if (rawInput.length < 8) {
+          return {
+            content: [{
+              type: 'text',
+              text: '# 需求太短\n\n深度评审只对复杂需求有价值。请把完整需求说清楚（要做什么、给谁用、有哪些互相冲突的约束）。',
+            }],
+            isError: true,
+          };
+        }
+        const r = await runDeepReview({ raw_input: rawInput }, { provider: new AnthropicProvider(), combos });
+        log(`deep-review elapsed=${(r.elapsed_ms / 1000).toFixed(1)}s degraded=${r.degraded.length} inClosedSet=${r.in_closed_set}`);
+        return { content: [{ type: 'text', text: renderDeepReview({ rawInput, ...r }) }] };
       }),
     },
   ];

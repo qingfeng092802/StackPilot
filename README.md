@@ -43,6 +43,7 @@
 | `apply_stack_blueprint` | 架构契约幂等写入 `.cursor/rules/stackpilot.mdc` 与 `CLAUDE.md`，AI 打开项目自动遵守 |
 | `scaffold_blueprint` | 生成可运行骨架：锁定版本的 package.json、目录结构、`.env.example`、部署配置（永不覆盖已有文件） |
 | `inspect_project` | 只读反查存量项目：离哪套蓝图最近、缺了什么、多了什么（monorepo 明确拒绝） |
+| `deep_architecture_review` | **复杂需求专属**（约 30 秒 + 额外费用，需配 key）：三视角盲评 → 红队挑刺 → 法官裁决；闭集外方案自动记为候选并给出带实测纪律的手动搭建指令。常规选型请用 `recommend_stack` |
 
 三级解析路由，**没有 API key 也能用**：宿主结构化传入（零成本，首选）→ 内部 LLM → 离线关键词 + 中文数量规则。
 

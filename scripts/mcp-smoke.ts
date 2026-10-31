@@ -71,8 +71,8 @@ try {
   line(`已连接。服务端暴露 ${tools.length} 个工具：`);
   for (const t of tools) console.log(`  · ${t.name} — ${t.description?.slice(0, 60)}…`);
   ok(
-    '工具数量 = 5（recommend_stack / get_detailed_prompt / apply_stack_blueprint / scaffold_blueprint / inspect_project）',
-    tools.length === 5,
+    '工具数量 = 6（含 deep_architecture_review）',
+    tools.length === 6,
     `got ${tools.length}: ${tools.map((t) => t.name).join(',')}`,
   );
 

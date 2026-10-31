@@ -2,6 +2,18 @@
 
 所有显著变更记录在本文件。格式参考 Keep a Changelog；版本遵循 SemVer。
 
+## [3.1.0] - 2026-10-31
+
+### 新增（降维法庭收进独立工具的笼子）
+- **`deep_architecture_review` 工具（第 6 个）**：仅限闭集装不下的复杂需求。三视角并发盲评（成本/性能/开发速度，互不知情，单路 12s 超时）→ 红队单次挑刺（8s）→ Lead 强约束 JSON 裁决（10s）；最长串行约 30s，任何阶段超时都带当前进度降级返回，绝不炸 stdio。
+- **闭集交互兜底**：裁决 combo_id 经本地二次校验（不信模型自报）；闭集外自动落盘 `src/data/candidates-pending/deep-review-<ts>.json` 作未来扩集材料，渲染层给出带实测纪律的手动搭建指令；闭集内则指路常规工具。
+- **确定性渲染**：`renderDeepReview` 纯函数排版，降级区块显式说明，不渲染空区块。
+- **AI 生成纪律抽为常量**（`AI_GENERATION_DISCIPLINE`）：启动指令与深度评审共用同一份实测文本。
+- 无 key 时工具返回 isError 并指路 `recommend_stack`——主流程零影响。
+
+### 测试
+- `test-deep-review.ts` 23 断言：正常裁决 / **Lead 乱 JSON 不崩（降级渲染原文）** / 三路全超时 <15s 返回 / 闭集外落盘且闭集零修改；registry 升至 6 工具（无 key isError 断言）。十一套回归 479 断言。
+
 ## [3.0.0] - 2026-10-31
 
 ### 为什么是 major

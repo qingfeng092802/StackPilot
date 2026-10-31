@@ -35,7 +35,7 @@ const group = (t: string) => console.log(`\n${t}`);
 const tools = buildToolTools();
 const byName = new Map(tools.map((t) => [t.name, t]));
 
-const EXPECTED = ['recommend_stack', 'get_detailed_prompt', 'apply_stack_blueprint', 'scaffold_blueprint', 'inspect_project'];
+const EXPECTED = ['recommend_stack', 'get_detailed_prompt', 'apply_stack_blueprint', 'scaffold_blueprint', 'inspect_project', 'deep_architecture_review'];
 
 group('一、注册表完整性：五个工具名齐全 + schema 必填字段在');
 {
@@ -73,6 +73,9 @@ group('三、参数错误路径：isError:true 而非异常');
 {
   // 注意写法：`await get(x)!(...)` 在顶层 await 场景下转译有歧义（实测炸），
   // 一律先取出 handler 再调用——这也是给后来人的写法示范。
+  const deep = byName.get('deep_architecture_review')!;
+  const deepNoKey = await deep.handler({ raw_input: '零预算实时协作 3D 建模软件，10 万人在线' });
+  ok('deep 无 key 时 isError 且指路常规工具', deepNoKey.isError === true && deepNoKey.content[0].text.includes('recommend_stack'));
   const inspH = byName.get('inspect_project')!.handler;
   ok('inspect 空路径 isError', (await inspH({ workspace_path: '' })).isError === true);
   ok('inspect 相对路径 isError', (await inspH({ workspace_path: 'relative/path' })).isError === true);

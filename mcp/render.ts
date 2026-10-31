@@ -250,6 +250,126 @@ export function renderRecommendation(input: RenderInput): string {
   return out.join('\n');
 }
 
+/**
+ * deep_architecture_review 的确定性渲染（v3.1.0）。
+ * 输入是 runDeepReview 的结构化结果——本函数纯排版，不调模型、不产新事实。
+ * 降级路径（某阶段超时/解析失败）在对应区块显示占位说明，绝不渲染空区块。
+ */
+export function renderDeepReview(r: {
+  rawInput: string;
+  perspectives: Array<{ angle: string; payload: { verdict: string; top_risks: string[] } | null; degraded?: string }>;
+  redTeam: { contradictions: string[]; blind_spots: string[] } | null;
+  verdict: {
+    headline: string;
+    recommended_stack: Array<{ layer: string; choice: string; reason: string }>;
+    red_team_warnings: string[];
+    plan_b: { trigger: string; fallback: string };
+    open_questions: string[];
+    combo_id: string | null;
+  } | null;
+  rawVerdictText: string | null;
+  degraded: string[];
+  elapsed_ms: number;
+  in_closed_set: boolean;
+  combo: Combo | null;
+  candidatesPath: string | null;
+  discipline: string[];
+}): string {
+  const out: string[] = [];
+  out.push(`# 深度架构评审：${r.verdict?.headline ?? '（裁决未完成，以下为各视角原始材料）'}`);
+  out.push('');
+  out.push(`> 模式：\`deep_architecture_review\`　·　耗时 ${(r.elapsed_ms / 1000).toFixed(1)}s　·　多路模型调用，产生额外费用`);
+  out.push('> 常规选型请用 `recommend_stack`（秒级、零成本、闭集兜底）。');
+  if (r.degraded.length) {
+    out.push(`> 降级说明：${r.degraded.join('；')}`);
+  }
+  out.push('');
+
+  if (r.verdict) {
+    out.push('## 推荐方案（Lead 裁决）');
+    out.push('');
+    for (const s of r.verdict.recommended_stack) {
+      out.push(`- **${s.layer}**：${s.choice}${s.reason ? ` —— ${s.reason}` : ''}`);
+    }
+    out.push('');
+    if (r.verdict.red_team_warnings.length) {
+      out.push('## ⚠️ 红队风险警告');
+      out.push('');
+      for (const w of r.verdict.red_team_warnings) out.push(`- ${w}`);
+      out.push('');
+    }
+    if (r.verdict.plan_b.trigger || r.verdict.plan_b.fallback) {
+      out.push('## Plan B');
+      out.push('');
+      out.push(`- **什么时候推翻**：${r.verdict.plan_b.trigger || '（未给出）'}`);
+      out.push(`- **换什么**：${r.verdict.plan_b.fallback || '（未给出）'}`);
+      out.push('');
+    }
+    if (r.verdict.open_questions.length) {
+      out.push('## 还需要确认');
+      out.push('');
+      for (const q of r.verdict.open_questions) out.push(`- ${q}`);
+      out.push('');
+    }
+  } else if (r.rawVerdictText) {
+    out.push('## Lead 裁决原文（JSON 解析失败，原样保留供人工判读）');
+    out.push('');
+    out.push('```text');
+    out.push(r.rawVerdictText.slice(0, 2000));
+    out.push('```');
+    out.push('');
+  }
+
+  out.push('## 三视角盲评（独立评估，互不知情）');
+  out.push('');
+  for (const p of r.perspectives) {
+    if (p.payload) {
+      out.push(`### ${p.angle}`);
+      out.push('');
+      out.push(p.payload.verdict);
+      if (p.payload.top_risks.length) {
+        out.push('');
+        for (const risk of p.payload.top_risks) out.push(`- 风险：${risk}`);
+      }
+      out.push('');
+    } else {
+      out.push(`### ${p.angle}`);
+      out.push('');
+      out.push(`（${p.degraded ?? '未完成'}——本视角缺位，结论已按可用材料降级）`);
+      out.push('');
+    }
+  }
+
+  if (r.redTeam) {
+    out.push('## 红队挑刺（矛盾点与盲区）');
+    out.push('');
+    for (const c of r.redTeam.contradictions ?? []) out.push(`- 矛盾：${c}`);
+    for (const b of r.redTeam.blind_spots ?? []) out.push(`- 盲区：${b}`);
+    out.push('');
+  }
+
+  // 闭集交互兜底：在闭集 → 指路常规工具；不在 → 候选已记录 + 手动搭建建议
+  if (r.in_closed_set && r.combo) {
+    out.push('## 与闭集的关系');
+    out.push('');
+    out.push(`- 裁决落在闭集内（${r.combo.id} ${r.combo.name}）。**建议改用 \`recommend_stack\` 常规选型**拿到可核对的分数与落选清单，再用 \`scaffold_blueprint\`（combo_id=${r.combo.id}）直接生成可运行骨架——比手工搭建快得多。`);
+    out.push('');
+  } else if (r.verdict) {
+    out.push('## 与闭集的关系');
+    out.push('');
+    out.push('- **此方案超出了 StackPilot 当前闭集覆盖范围**，评审结果已作为候选记录写入本地（`src/data/candidates-pending/`），作为未来扩集的评审材料。');
+    out.push('- 建议把下面的启动指令直接粘给 AI 手动搭建。**注意：本方案没有骨架兜底**，以下纪律是实测踩坑换来的，逐条遵守：');
+    out.push('');
+    for (const d of r.discipline) out.push(`- ${d}`);
+    out.push('');
+  }
+
+  out.push('---');
+  out.push('');
+  out.push(`原始需求：${r.rawInput}`);
+  return out.join('\n');
+}
+
 export function renderDetailedPrompt(opts: {
   comboName: string;
   comboId: string;

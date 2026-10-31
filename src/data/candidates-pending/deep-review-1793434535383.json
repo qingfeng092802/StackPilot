@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-10-31T08:15:35.383Z",
+  "raw_input": "测试需求",
+  "verdict": {
+    "headline": "建议自研 WebGL 引擎",
+    "recommended_stack": [
+      {
+        "layer": "渲染",
+        "choice": "WebGPU",
+        "reason": "闭集外"
+      }
+    ],
+    "red_team_warnings": [
+      "工作量大"
+    ],
+    "plan_b": {
+      "trigger": "x",
+      "fallback": "y"
+    },
+    "open_questions": [],
+    "combo_id": null
+  },
+  "perspectives": [
+    {
+      "angle": "成本视角",
+      "payload": {
+        "verdict": "成本可控",
+        "top_risks": [
+          "托管费"
+        ]
+      }
+    },
+    {
+      "angle": "性能视角",
+      "payload": {
+        "verdict": "成本可控",
+        "top_risks": [
+          "托管费"
+        ]
+      }
+    },
+    {
+      "angle": "开发速度视角",
+      "payload": {
+        "verdict": "成本可控",
+        "top_risks": [
+          "托管费"
+        ]
+      }
+    }
+  ],
+  "red_team": {
+    "contradictions": [
+      "x"
+    ],
+    "blind_spots": [
+      "y"
+    ]
+  }
+}
